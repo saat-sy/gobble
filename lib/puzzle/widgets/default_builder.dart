@@ -13,7 +13,7 @@ class _DefaultBuilderState extends State<DefaultBuilder>
   late TabController _tabController;
 
   static const double tabHeight = 35;
-  static const double marginTop = 80;
+  static const double marginTop = 60;
 
   @override
   void initState() {
@@ -45,6 +45,9 @@ class _DefaultBuilderState extends State<DefaultBuilder>
           indicatorPadding: const EdgeInsets.symmetric(horizontal: 20),
           labelPadding: const EdgeInsets.symmetric(horizontal: 20),
           indicatorWeight: 0,
+          labelStyle: const TextStyle(
+            fontSize: 15,
+          ),
 
           // TABS
           tabs: [
@@ -127,18 +130,47 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
               width: sideOfBoard,
               height: sideOfBoard,
               child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding:
+                      EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
                   itemCount: 36,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 6,
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 8),
-                  itemBuilder: (context, index) => getPiece()
-                  )
-                ),
+                  itemBuilder: (context, index) => getPiece())),
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            getStartButton(context),
+          ],
         ),
       ],
+    );
+  }
+
+  Container getStartButton(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(
+          horizontal: MediaQuery.of(context).size.width * 0.05,
+          vertical: MediaQuery.of(context).size.width * 0.1),
+      child: Align(
+        alignment: Alignment.center,
+        child: ElevatedButton(
+					onPressed: () {},
+					style: ElevatedButton.styleFrom(
+						minimumSize: const Size.fromHeight(37.5),
+						textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+						primary: GobbleColors.black,
+						onPrimary: GobbleColors.textLight,
+						shape: RoundedRectangleBorder(
+							borderRadius: BorderRadius.circular(50)
+						)
+					),
+					child: const Text("START GAME"),
+				)
+      ),
     );
   }
 
