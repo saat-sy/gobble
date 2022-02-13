@@ -37,7 +37,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
           ),
           const SizedBox(width: 10,),
           const Text(
-            "Logo",
+            "Gobble",
             style: TextStyle(
               color: GobbleColors.black
             )
