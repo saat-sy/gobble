@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gobble/mode/mode_bloc.dart';
 import 'package:gobble/colors/colors.dart';
+import 'package:gobble/puzzle/puzzle.dart';
 
 class DefaultBuilder extends StatefulWidget {
   const DefaultBuilder({Key? key}) : super(key: key);
@@ -24,7 +27,22 @@ class _DefaultBuilderState extends State<DefaultBuilder>
   @override
   void dispose() {
     _tabController.dispose();
+    _tabController.addListener(_onModeChange());
     super.dispose();
+  }
+
+  // CHANGE MODE IF THE TABS ARE CHANGED IN MODEBLOC
+  _onModeChange() {
+    if (_tabController.indexIsChanging) {
+      switch (_tabController.index) {
+        case 0:
+          context.read<ModeBloc>().add(ChangeModeToSingle());
+          break;
+        case 1:
+          context.read<ModeBloc>().add(ChangeModeToMulti());
+          break;
+      }
+    }
   }
 
   @override
@@ -63,13 +81,15 @@ class _DefaultBuilderState extends State<DefaultBuilder>
             controller: _tabController,
             children: const [
               PuzzleBoard(
-                  singlePlayer: true,
-                  tabHeight: tabHeight,
-                  marginForTab: marginTop),
+                singlePlayer: true,
+                tabHeight: tabHeight,
+                marginForTab: marginTop,
+              ),
               PuzzleBoard(
-                  singlePlayer: false,
-                  tabHeight: tabHeight,
-                  marginForTab: marginTop)
+                singlePlayer: false,
+                tabHeight: tabHeight,
+                marginForTab: marginTop,
+              ),
             ],
           ),
         ),
@@ -83,9 +103,16 @@ class _DefaultBuilderState extends State<DefaultBuilder>
       child: Tab(
         child: Container(
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50),
-              border: Border.all(color: GobbleColors.black, width: 1)),
-          child: Align(alignment: Alignment.center, child: Text(title)),
+            borderRadius: BorderRadius.circular(50),
+            border: Border.all(
+              color: GobbleColors.black,
+              width: 1,
+            ),
+          ),
+          child: Align(
+            alignment: Alignment.center,
+            child: Text(title),
+          ),
         ),
       ),
     );
@@ -125,20 +152,22 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
       children: [
         Center(
           child: Container(
-              margin: EdgeInsets.only(
-                  bottom: widget.tabHeight + widget.marginForTab),
-              width: sideOfBoard,
-              height: sideOfBoard,
-              child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding:
-                      EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
-                  itemCount: 36,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 6,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8),
-                  itemBuilder: (context, index) => getPiece())),
+            margin:
+                EdgeInsets.only(bottom: widget.tabHeight + widget.marginForTab),
+            width: sideOfBoard,
+            height: sideOfBoard,
+            child: GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
+              itemCount: 36,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 6,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
+              itemBuilder: (context, index) => getPiece(),
+            ),
+          ),
         ),
         Column(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -151,6 +180,11 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
   }
 
   Container getStartButton(BuildContext context) {
+    bool isSingle = true;
+
+    final state = context.read<ModeBloc>().state;
+    if (state is ModeMulti) isSingle = false;
+
     return Container(
       margin: EdgeInsets.symmetric(
           horizontal: MediaQuery.of(context).size.width * 0.05,
@@ -158,18 +192,26 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
       child: Align(
         alignment: Alignment.center,
         child: ElevatedButton(
-					onPressed: () {},
-					style: ElevatedButton.styleFrom(
-						minimumSize: const Size.fromHeight(37.5),
-						textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-						primary: GobbleColors.black,
-						onPrimary: GobbleColors.textLight,
-						shape: RoundedRectangleBorder(
-							borderRadius: BorderRadius.circular(50)
-						)
-					),
-					child: const Text("START GAME"),
-				)
+          onPressed: () {
+            // START GAME PRESSED
+            context
+                .read<PuzzleBloc>()
+                .add(isSingle ? LoadSinglePuzzle() : LoadMultiPuzzle());
+          },
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size.fromHeight(37.5),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+            ),
+            primary: GobbleColors.black,
+            onPrimary: GobbleColors.textLight,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+            ),
+          ),
+          child: const Text("START GAME"),
+        ),
       ),
     );
   }

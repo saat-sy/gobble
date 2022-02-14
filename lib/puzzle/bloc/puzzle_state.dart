@@ -1,3 +1,5 @@
+// THIS IS WHAT THE BLOC PASSES AND THIS WILL BE PASSED TO THE UI
+
 part of 'puzzle_bloc.dart';
 
 abstract class PuzzleState extends Equatable {
@@ -9,19 +11,21 @@ abstract class PuzzleState extends Equatable {
 
 class PuzzleInitial extends PuzzleState {}
 
-class PuzzleEmpty extends PuzzleState {
+class PuzzleEmpty extends PuzzleState {}
+
+class PuzzleSingleStart extends PuzzleState {
   final Puzzle puzzle;
 
-  const PuzzleEmpty({required this.puzzle});
+  const PuzzleSingleStart({required this.puzzle});
 
   @override
   List<Object> get props => [puzzle];
 }
 
-class PuzzleStart extends PuzzleState {
+class PuzzleMultiStart extends PuzzleState {
   final Puzzle puzzle;
 
-  const PuzzleStart({required this.puzzle});
+  const PuzzleMultiStart({required this.puzzle});
 
   @override
   List<Object> get props => [puzzle];
