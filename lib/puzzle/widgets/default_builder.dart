@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gobble/mode/mode_bloc.dart';
 import 'package:gobble/colors/colors.dart';
 import 'package:gobble/puzzle/puzzle.dart';
+import 'package:gobble/puzzle/widgets/puzzle_board.dart';
 
 class DefaultBuilder extends StatefulWidget {
   const DefaultBuilder({Key? key}) : super(key: key);
@@ -70,21 +71,29 @@ class _DefaultBuilderState extends State<DefaultBuilder>
 
         // CHILDREN
         Expanded(
-          child: TabBarView(
-            physics: const NeverScrollableScrollPhysics(),
-            controller: _tabController,
-            children: const [
-              PuzzleBoard(
-                singlePlayer: true,
-                tabHeight: tabHeight,
-                marginForTab: marginTop,
-              ),
-              PuzzleBoard(
-                singlePlayer: false,
-                tabHeight: tabHeight,
-                marginForTab: marginTop,
-              ),
-            ],
+          child: BlocBuilder<PuzzleBloc, PuzzleState>(
+            builder: (context, state) {
+              if (state is PuzzleEmpty) {
+                return TabBarView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  controller: _tabController,
+                  children: [
+                    PuzzleBoard(
+                      puzzle: state.puzzle,
+                      tabHeight: tabHeight,
+                      marginForTab: marginTop,
+                    ),
+                    PuzzleBoard(
+                      puzzle: state.puzzle,
+                      tabHeight: tabHeight,
+                      marginForTab: marginTop,
+                    ),
+                  ],
+                );
+              } else {
+                return const Text('An error occured');
+              }
+            },
           ),
         ),
       ],
@@ -116,120 +125,5 @@ class _DefaultBuilderState extends State<DefaultBuilder>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-}
-
-class PuzzleBoard extends StatefulWidget {
-  final bool singlePlayer;
-  final double tabHeight;
-  final double marginForTab;
-
-  const PuzzleBoard(
-      {required this.singlePlayer,
-      required this.tabHeight,
-      required this.marginForTab,
-      Key? key})
-      : super(key: key);
-
-  @override
-  State<PuzzleBoard> createState() => _PuzzleBoardState();
-}
-
-class _PuzzleBoardState extends State<PuzzleBoard> {
-  // BOARD WIDTH
-  late double sideOfBoard;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    sideOfBoard = MediaQuery.of(context).size.width;
-
-    return Stack(
-      children: [
-        Center(
-          child: Container(
-            margin:
-                EdgeInsets.only(bottom: widget.tabHeight + widget.marginForTab),
-            width: sideOfBoard,
-            height: sideOfBoard,
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
-              itemCount: 36,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 6,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemBuilder: (context, index) => getPiece(),
-            ),
-          ),
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            getStartButton(context),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Container getStartButton(BuildContext context) {
-    bool isSingle = true;
-
-    final state = context.read<ModeBloc>().state;
-    if (state is ModeMulti) isSingle = false;
-
-    return Container(
-      margin: EdgeInsets.symmetric(
-          horizontal: MediaQuery.of(context).size.width * 0.05,
-          vertical: MediaQuery.of(context).size.width * 0.1),
-      child: Align(
-        alignment: Alignment.center,
-        child: ElevatedButton(
-          onPressed: () {
-            // START GAME PRESSED
-            context
-                .read<PuzzleBloc>()
-                .add(isSingle ? LoadSinglePuzzle() : LoadMultiPuzzle());
-          },
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size.fromHeight(37.5),
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-            ),
-            primary: GobbleColors.black,
-            onPrimary: GobbleColors.textLight,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50),
-            ),
-          ),
-          child: const Text("START GAME"),
-        ),
-      ),
-    );
-  }
-
-  Container getPiece() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            spreadRadius: 0,
-            blurRadius: 3,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-    );
   }
 }

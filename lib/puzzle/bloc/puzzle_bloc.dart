@@ -17,15 +17,47 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   void _onLoadEmpty(LoadEmptyPuzzle event, Emitter<PuzzleState> emit) {
-    emit(PuzzleEmpty());
+    emit(
+      PuzzleEmpty(
+        puzzle: _generateEmptyPuzzle(),
+      ),
+    );
   }
 
   void _onLoadSingle(LoadSinglePuzzle event, Emitter<PuzzleState> emit) {
-    emit(PuzzleSingleStart(puzzle: _generatePuzzle()));
+    emit(
+      PuzzleSingleStart(
+        puzzle: _generatePuzzle(),
+      ),
+    );
   }
 
   void _onLoadMulti(LoadMultiPuzzle event, Emitter<PuzzleState> emit) {
-    emit(PuzzleMultiStart(puzzle: _generatePuzzle()));
+    emit(
+      PuzzleMultiStart(
+        puzzle: _generatePuzzle(),
+      ),
+    );
+  }
+
+  Puzzle _generateEmptyPuzzle() {
+    List<Piece> listOfPieces = <Piece>[];
+    Random random = Random();
+
+    for (int i = 1; i <= 6; i++) {
+      for (int j = 1; j <= 6; j++) {
+        Position position = Position(x: i, y: j);
+
+        Piece piece = Piece(
+          position: position,
+          isBlank: true,
+        );
+
+        listOfPieces.add(piece);
+      }
+    }
+
+    return Puzzle(pieces: listOfPieces);
   }
 
   Puzzle _generatePuzzle() {

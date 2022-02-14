@@ -11,7 +11,14 @@ abstract class PuzzleState extends Equatable {
 
 class PuzzleInitial extends PuzzleState {}
 
-class PuzzleEmpty extends PuzzleState {}
+class PuzzleEmpty extends PuzzleState {
+  final Puzzle puzzle;
+
+  const PuzzleEmpty({required this.puzzle});
+
+  @override
+  List<Object> get props => [puzzle];
+}
 
 class PuzzleSingleStart extends PuzzleState {
   final Puzzle puzzle;

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gobble/models/puzzle.dart';
 import 'package:gobble/puzzle/bloc/puzzle_bloc.dart';
+import 'package:gobble/puzzle/widgets/puzzle_board.dart';
 
 class StartBuilder extends StatefulWidget {
   final Puzzle puzzle;
@@ -19,20 +21,20 @@ class StartBuilder extends StatefulWidget {
 class _StartBuilderState extends State<StartBuilder> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.85,
-        height: MediaQuery.of(context).size.width * 0.85,
-        color: Colors.red,
-        child: Center(
-          child: Text(
-            widget.type == PuzzleType.single ? "Single" : "Multi",
-            style: const TextStyle(
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
+    return BlocBuilder<PuzzleBloc, PuzzleState>(
+      builder: (context, state) {
+        if (state is PuzzleSingleStart) {
+          return PuzzleBoard(
+            puzzle: state.puzzle,
+          );
+        } else if (state is PuzzleMultiStart) {
+          return PuzzleBoard(
+            puzzle: state.puzzle,
+          );
+        } else {
+          return const Text('An error occured');
+        }
+      },
     );
   }
 }
