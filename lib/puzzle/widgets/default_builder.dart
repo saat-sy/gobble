@@ -21,14 +21,8 @@ class _DefaultBuilderState extends State<DefaultBuilder>
   @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onModeChange);
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _tabController.addListener(_onModeChange());
-    super.dispose();
   }
 
   // CHANGE MODE IF THE TABS ARE CHANGED IN MODEBLOC
@@ -116,6 +110,12 @@ class _DefaultBuilderState extends State<DefaultBuilder>
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 }
 
