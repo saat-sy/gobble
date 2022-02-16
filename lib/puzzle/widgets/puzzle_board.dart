@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gobble/colors/colors.dart';
+import 'package:gobble/dismissible/my_dismissible.dart';
 import 'package:gobble/mode/mode_bloc.dart';
 import 'package:gobble/models/piece.dart';
 import 'package:gobble/models/puzzle.dart';
@@ -25,7 +26,13 @@ class PuzzleBoard extends StatefulWidget {
 
 class _PuzzleBoardState extends State<PuzzleBoard> {
   // BOARD WIDTH
-  late double sideOfBoard;
+  double sideOfBoard = 0;
+  double sideOfPiece = 0;
+
+  late Piece selectedPiece;
+  bool selected = false;
+
+  String data = "";
 
   @override
   void initState() {
@@ -35,6 +42,8 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
   @override
   Widget build(BuildContext context) {
     sideOfBoard = MediaQuery.of(context).size.width;
+
+    sideOfPiece = ((sideOfBoard * 0.9) / 6.0) - 8;
 
     return Stack(
       children: [
@@ -50,8 +59,6 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
               itemCount: 36,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 6,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
               ),
               itemBuilder: (context, index) => getPiece(
                 widget.puzzle.pieces[index],
@@ -69,7 +76,7 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
     );
   }
 
-  Container getPiece(Piece piece) {
+  MyDismissible getPiece(Piece piece) {
     Color pieceColor = GobbleColors.pieceType1;
     String value = "";
     Color valueColor = GobbleColors.valueType1;
@@ -89,26 +96,34 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
           : GobbleColors.valueType2;
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: pieceColor,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            spreadRadius: 0,
-            blurRadius: 3,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          value,
-          style: TextStyle(
-            color: valueColor,
-            fontSize: 30,
-            fontWeight: FontWeight.w500
+    return MyDismissible(
+      direction: piece.direction,
+      onDismissed: (direction) {
+        print(direction);
+      },
+      key: UniqueKey(),
+      // TODO: ADD BACKGROUND
+      child: Container(
+        margin: EdgeInsets.all(4),
+        height: sideOfPiece,
+        width: sideOfPiece,
+        decoration: BoxDecoration(
+          color: pieceColor,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 0,
+              blurRadius: 3,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            value,
+            style: TextStyle(
+                color: valueColor, fontSize: 30, fontWeight: FontWeight.w500),
           ),
         ),
       ),

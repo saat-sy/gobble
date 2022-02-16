@@ -16,4 +16,6 @@ abstract class GobbleColors {
   static const Color valueType2 = Color(0xFFFFFFFF);
 
   static const Color valueType1 = Color(0xFF353535);
+
+  static const Color emptyPieceColor = Color.fromARGB(128, 128, 128, 128);
 }

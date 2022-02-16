@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:gobble/dismissible/my_dismissible.dart';
 import 'package:gobble/models/piece.dart';
 import 'package:gobble/models/position.dart';
 import 'package:gobble/models/puzzle.dart';
@@ -82,11 +83,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
         int value = possibleDigits[random.nextInt(4)];
         PieceType pieceType = pieceTypes[counter];
+        MyDismissDirection direction = _getDirectionOfPiece(i, j);
 
         Piece piece = Piece(
           position: position,
           value: value,
           pieceType: pieceType,
+          direction: direction,
         );
 
         listOfPieces.add(piece);
@@ -96,5 +99,46 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     }
 
     return Puzzle(pieces: listOfPieces);
+  }
+
+  MyDismissDirection _getDirectionOfPiece(int x, int y) {
+    // 11 12 13 14 15 16
+    // 21 22 23 24 25 26
+    // 31 32 33 34 35 36
+    // 41 42 43 44 45 46
+    // 51 52 53 54 55 56
+    // 61 62 63 64 65 66
+
+    if (x == 1) {
+      if (y != 6 && y != 1) {
+        return MyDismissDirection.top;
+      } else if (y == 6) {
+        return MyDismissDirection.topRight;
+      } else {
+        return MyDismissDirection.topLeft;
+      }
+    }
+    // BOTTOM
+    if (x == 6) {
+      if (y != 6 && y != 1) {
+        return MyDismissDirection.bottom;
+      } else if (y == 6) {
+        return MyDismissDirection.bottomRight;
+      } else {
+        return MyDismissDirection.bottomLeft;
+      }
+    }
+    // LEFT
+    else if (y == 1) {
+      return MyDismissDirection.left;
+    }
+    // RIGHT
+    else if (y == 6) {
+      return MyDismissDirection.right;
+    }
+    // ALL OTHER PIECES
+    else {
+      return MyDismissDirection.all;
+    }
   }
 }
