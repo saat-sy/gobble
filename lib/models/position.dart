@@ -8,4 +8,8 @@ class Position extends Equatable {
 
   @override
   List<Object?> get props => [x, y];
+
+  int convertPositionToIndex() {
+    return (((x - 1) * 6) + y) - 1;
+  }
 }

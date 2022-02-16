@@ -5,6 +5,7 @@ import 'package:gobble/colors/colors.dart';
 import 'package:gobble/dismissible/my_dismissible.dart';
 import 'package:gobble/mode/mode_bloc.dart';
 import 'package:gobble/models/piece.dart';
+import 'package:gobble/models/position.dart';
 import 'package:gobble/models/puzzle.dart';
 import 'package:gobble/puzzle/puzzle.dart';
 
@@ -34,6 +35,13 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
 
   String data = "";
 
+  final directionToNum = {
+    MyDismissDirection.up: const Position(x: -1, y: 0),
+    MyDismissDirection.down: const Position(x: 1, y: 0),
+    MyDismissDirection.startToEnd: const Position(x: 0, y: 1),
+    MyDismissDirection.endToStart: const Position(x: 0, y: -1),
+  };
+
   @override
   void initState() {
     super.initState();
@@ -61,7 +69,7 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
                 crossAxisCount: 6,
               ),
               itemBuilder: (context, index) => getPiece(
-                widget.puzzle.pieces[index],
+                context.read<PuzzleBloc>().state.puzzle.pieces[index],
               ),
             ),
           ),
@@ -99,12 +107,24 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
     return MyDismissible(
       direction: piece.direction,
       onDismissed: (direction) {
-        print(direction);
+        PuzzleType type = context.read<ModeBloc>().state is ModeSingle
+            ? PuzzleType.single
+            : PuzzleType.multi;
+
+        BlocProvider.of<PuzzleBloc>(context).add(
+              PieceMoved(
+                fromPiece: piece,
+                toPiece: _getTargetPiece(piece, direction),
+                puzzle: context.read<PuzzleBloc>().state.puzzle,
+                puzzleType: type,
+              ),
+            );
       },
+      confirmDismiss: (direction) => _checkDismissible(direction, piece),
       key: UniqueKey(),
       // TODO: ADD BACKGROUND
       child: Container(
-        margin: EdgeInsets.all(4),
+        margin: const EdgeInsets.all(4),
         height: sideOfPiece,
         width: sideOfPiece,
         decoration: BoxDecoration(
@@ -138,12 +158,10 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
 
     return BlocBuilder<PuzzleBloc, PuzzleState>(
       builder: (context, state) {
-        if (state is PuzzleEmpty) {
+        if (!state.started) {
           return _startButton(context, isSingle);
-        } else if (state is PuzzleSingleStart || state is PuzzleMultiStart) {
-          return _finishButton(context, isSingle);
         } else {
-          return const Text('An error occured');
+          return _finishButton(context, isSingle);
         }
       },
     );
@@ -207,5 +225,35 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
         ),
       ],
     );
+  }
+
+  bool _checkDismissible(MyDismissDirection direction, Piece piece) {
+    if (piece.isBlank) {
+      return false;
+    }
+
+    Piece targetPiece = _getTargetPiece(piece, direction);
+
+    if (targetPiece.value == piece.value) return true;
+    return false;
+  }
+
+  Piece _getTargetPiece(Piece piece, MyDismissDirection direction) {
+    Position deltaPosition = const Position(x: 0, y: 0);
+    Position piecePos = piece.position;
+
+    for (final entry in directionToNum.entries) {
+      if (direction == entry.key) {
+        deltaPosition = entry.value;
+      }
+    }
+
+    Position newPosition = Position(
+        x: piecePos.x + deltaPosition.x, y: piecePos.y + deltaPosition.y);
+
+    int index = newPosition.convertPositionToIndex();
+
+    Piece targetPiece = context.read<PuzzleBloc>().state.puzzle.pieces[index];
+    return targetPiece;
   }
 }

@@ -1,39 +1,40 @@
 // THIS IS WHAT THE BLOC PASSES AND THIS WILL BE PASSED TO THE UI
-
 part of 'puzzle_bloc.dart';
 
-abstract class PuzzleState extends Equatable {
-  const PuzzleState();
-
-  @override
-  List<Object> get props => [];
-}
-
-class PuzzleInitial extends PuzzleState {}
-
-class PuzzleEmpty extends PuzzleState {
+class PuzzleState extends Equatable {
   final Puzzle puzzle;
+  final bool started;
+  final PuzzleType type;
+  final Piece lastEditedPiece;
 
-  const PuzzleEmpty({required this.puzzle});
+  const PuzzleState({
+    this.puzzle = const Puzzle(pieces: <Piece>[]),
+    this.started = false,
+    this.type = PuzzleType.single,
+    this.lastEditedPiece = const Piece(
+      position: Position(x: 0, y: 0),
+    ),
+  });
+
+  PuzzleState copyWith({
+    Puzzle? puzzle,
+    bool? started,
+    PuzzleType? type,
+    Piece? lastEditedPiece,
+  }) {
+    return PuzzleState(
+      puzzle: puzzle ?? this.puzzle,
+      started: started ?? this.started,
+      type: type ?? this.type,
+      lastEditedPiece: lastEditedPiece ?? this.lastEditedPiece,
+    );
+  }
 
   @override
-  List<Object> get props => [puzzle];
-}
-
-class PuzzleSingleStart extends PuzzleState {
-  final Puzzle puzzle;
-
-  const PuzzleSingleStart({required this.puzzle});
-
-  @override
-  List<Object> get props => [puzzle];
-}
-
-class PuzzleMultiStart extends PuzzleState {
-  final Puzzle puzzle;
-
-  const PuzzleMultiStart({required this.puzzle});
-
-  @override
-  List<Object> get props => [puzzle];
+  List<Object> get props => [
+        puzzle,
+        started,
+        type,
+        lastEditedPiece,
+      ];
 }

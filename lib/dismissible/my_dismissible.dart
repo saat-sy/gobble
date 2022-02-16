@@ -9,8 +9,9 @@ const double _kDismissThreshold = 0.4;
 
 typedef DismissDirectionCallback = void Function(MyDismissDirection direction);
 
-typedef ConfirmDismissCallback = Future<bool?> Function(
-    MyDismissDirection direction);
+typedef ConfirmDismissCallback = bool? Function(
+    MyDismissDirection direction
+    );
 
 typedef DismissUpdateCallback = void Function(DismissUpdateDetails details);
 
@@ -150,13 +151,12 @@ enum _FlingGestureKind { none, forward, reverse }
 
 class _MyDismissibleState extends State<MyDismissible>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-
   late final MyDismissDirection copyOfDirection;
 
   @override
   void initState() {
     super.initState();
-     copyOfDirection = widget.direction;
+    copyOfDirection = widget.direction;
     _moveController =
         AnimationController(duration: widget.movementDuration, vsync: this)
           ..addStatusListener(_handleDismissStatusChanged)
@@ -304,6 +304,9 @@ class _MyDismissibleState extends State<MyDismissible>
       case MyDismissDirection.all:
         _dragExtent += delta;
         break;
+
+      default:
+        break;
     }
     if (oldDragExtent.sign != _dragExtent.sign) {
       setState(() {
@@ -313,6 +316,9 @@ class _MyDismissibleState extends State<MyDismissible>
     if (!_moveController!.isAnimating) {
       _moveController!.value = _dragExtent.abs() / _overallDragAxisExtent;
     }
+
+    // TODO: DO SOMETHING WITH THE VALUE
+    // print(_dragExtent);
   }
 
   void _handleDismissUpdateValueChanged() {

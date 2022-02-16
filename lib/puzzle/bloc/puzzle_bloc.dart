@@ -11,39 +11,64 @@ part 'puzzle_event.dart';
 part 'puzzle_state.dart';
 
 class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
-  PuzzleBloc() : super(PuzzleInitial()) {
+  PuzzleBloc() : super(const PuzzleState()) {
     on<LoadEmptyPuzzle>(_onLoadEmpty);
     on<LoadSinglePuzzle>(_onLoadSingle);
     on<LoadMultiPuzzle>(_onLoadMulti);
+    on<PieceMoved>(_pieceMoved);
   }
 
   void _onLoadEmpty(LoadEmptyPuzzle event, Emitter<PuzzleState> emit) {
     emit(
-      PuzzleEmpty(
-        puzzle: _generateEmptyPuzzle(),
-      ),
+      PuzzleState(puzzle: _generateEmptyPuzzle(), started: false),
     );
   }
 
   void _onLoadSingle(LoadSinglePuzzle event, Emitter<PuzzleState> emit) {
     emit(
-      PuzzleSingleStart(
-        puzzle: _generatePuzzle(),
-      ),
+      PuzzleState(
+          puzzle: _generatePuzzle(), started: true, type: PuzzleType.single),
     );
   }
 
   void _onLoadMulti(LoadMultiPuzzle event, Emitter<PuzzleState> emit) {
     emit(
-      PuzzleMultiStart(
-        puzzle: _generatePuzzle(),
+      PuzzleState(
+          puzzle: _generatePuzzle(), started: true, type: PuzzleType.multi),
+    );
+  }
+
+  void _pieceMoved(PieceMoved event, Emitter<PuzzleState> emit) {
+    List<Piece> pieces = event.puzzle.pieces;
+
+    Piece newFromPiece = Piece(
+      isBlank: true,
+      position: event.fromPiece.position,
+    );
+
+    Piece newToPiece = Piece(
+      position: event.toPiece.position,
+      value: event.fromPiece.value + event.toPiece.value,
+      pieceType: event.fromPiece.pieceType,
+      direction: _getDirectionOfPiece(
+          event.toPiece.position.x, event.toPiece.position.y),
+    );
+
+    pieces[event.fromPiece.position.convertPositionToIndex()] = newFromPiece;
+    pieces[event.toPiece.position.convertPositionToIndex()] = newToPiece;
+
+    Puzzle newPuzzle = Puzzle(pieces: pieces);
+
+    emit(
+      state.copyWith(
+        puzzle: newPuzzle,
+        lastEditedPiece: newFromPiece,
       ),
     );
   }
 
   Puzzle _generateEmptyPuzzle() {
     List<Piece> listOfPieces = <Piece>[];
-    Random random = Random();
 
     for (int i = 1; i <= 6; i++) {
       for (int j = 1; j <= 6; j++) {

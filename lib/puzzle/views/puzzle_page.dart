@@ -42,20 +42,13 @@ class PuzzleView extends StatelessWidget {
       appBar: getAppBar(),
       body: BlocBuilder<PuzzleBloc, PuzzleState>(
         builder: (context, state) {
-          if (state is PuzzleEmpty) {
+          print('hello moto');
+          if (!state.started) {
             return const DefaultBuilder();
-          } else if (state is PuzzleSingleStart) {
-            return StartBuilder(
-              puzzle: state.puzzle,
-              type: PuzzleType.single,
-            );
-          } else if (state is PuzzleMultiStart) {
-            return StartBuilder(
-              puzzle: state.puzzle,
-              type: PuzzleType.multi,
-            );
           } else {
-            return const Text('Something went wrong.');
+            return StartBuilder(
+              type: state.type,
+            );
           }
         },
       ),

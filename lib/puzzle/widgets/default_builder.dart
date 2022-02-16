@@ -6,7 +6,9 @@ import 'package:gobble/puzzle/puzzle.dart';
 import 'package:gobble/puzzle/widgets/puzzle_board.dart';
 
 class DefaultBuilder extends StatefulWidget {
-  const DefaultBuilder({Key? key}) : super(key: key);
+  const DefaultBuilder({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _DefaultBuilderState createState() => _DefaultBuilderState();
@@ -71,29 +73,21 @@ class _DefaultBuilderState extends State<DefaultBuilder>
 
         // CHILDREN
         Expanded(
-          child: BlocBuilder<PuzzleBloc, PuzzleState>(
-            builder: (context, state) {
-              if (state is PuzzleEmpty) {
-                return TabBarView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  controller: _tabController,
-                  children: [
-                    PuzzleBoard(
-                      puzzle: state.puzzle,
-                      tabHeight: tabHeight,
-                      marginForTab: marginTop,
-                    ),
-                    PuzzleBoard(
-                      puzzle: state.puzzle,
-                      tabHeight: tabHeight,
-                      marginForTab: marginTop,
-                    ),
-                  ],
-                );
-              } else {
-                return const Text('An error occured');
-              }
-            },
+          child: TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
+            controller: _tabController,
+            children: [
+              PuzzleBoard(
+                puzzle: context.read<PuzzleBloc>().state.puzzle,
+                tabHeight: tabHeight,
+                marginForTab: marginTop,
+              ),
+              PuzzleBoard(
+                puzzle: context.read<PuzzleBloc>().state.puzzle,
+                tabHeight: tabHeight,
+                marginForTab: marginTop,
+              ),
+            ],
           ),
         ),
       ],
