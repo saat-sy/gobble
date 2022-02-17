@@ -27,44 +27,94 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   void _onLoadSingle(LoadSinglePuzzle event, Emitter<PuzzleState> emit) {
     emit(
       PuzzleState(
-          puzzle: _generatePuzzle(), started: true, type: PuzzleType.single),
+          puzzle: _makeOppositeTypeImmovable(_generatePuzzle(), first: true),
+          started: true,
+          type: PuzzleType.single),
     );
   }
 
   void _onLoadMulti(LoadMultiPuzzle event, Emitter<PuzzleState> emit) {
     emit(
       PuzzleState(
-          puzzle: _generatePuzzle(), started: true, type: PuzzleType.multi),
+          puzzle: _makeOppositeTypeImmovable(_generatePuzzle(), first: true),
+          started: true,
+          type: PuzzleType.multi),
     );
   }
 
   void _pieceMoved(PieceMoved event, Emitter<PuzzleState> emit) {
     List<Piece> pieces = event.puzzle.pieces;
 
-    Piece newFromPiece = Piece(
+    late Piece newFromPiece;
+    late Piece newToPiece;
+
+    newFromPiece = Piece(
       isBlank: true,
       position: event.fromPiece.position,
+      direction: MyDismissDirection.none,
     );
 
-    Piece newToPiece = Piece(
-      position: event.toPiece.position,
-      value: event.fromPiece.value + event.toPiece.value,
-      pieceType: event.fromPiece.pieceType,
-      direction: _getDirectionOfPiece(
-          event.toPiece.position.x, event.toPiece.position.y),
-    );
+    if (event.toPiece.isBlank) {
+      newToPiece = Piece(
+          position: event.toPiece.position,
+          value: event.fromPiece.value,
+          pieceType: event.fromPiece.pieceType,
+          direction: _getDirectionOfPiece(
+              event.toPiece.position.x, event.toPiece.position.y));
+    } else {
+      newToPiece = Piece(
+        position: event.toPiece.position,
+        value: event.fromPiece.value + event.toPiece.value,
+        pieceType: event.fromPiece.pieceType,
+        direction: _getDirectionOfPiece(
+            event.toPiece.position.x, event.toPiece.position.y),
+      );
+    }
 
     pieces[event.fromPiece.position.convertPositionToIndex()] = newFromPiece;
     pieces[event.toPiece.position.convertPositionToIndex()] = newToPiece;
 
     Puzzle newPuzzle = Puzzle(pieces: pieces);
 
+    newPuzzle = _makeOppositeTypeImmovable(newPuzzle);
+
     emit(
       state.copyWith(
-        puzzle: newPuzzle,
-        lastEditedPiece: newFromPiece,
-      ),
+          puzzle: newPuzzle,
+          pieceType: _getPieceType(state.pieceType),
+          lastMovedPiece: newToPiece),
     );
+  }
+
+  Puzzle _makeOppositeTypeImmovable(Puzzle puzzle, {bool first = false}) {
+    List<Piece> newPieces = <Piece>[];
+
+    for (var piece in puzzle.pieces) {
+      Piece newPiece;
+      if (!first) {
+        if (piece.pieceType == state.pieceType) {
+          newPiece = piece.changeDirectionToNone();
+        } else {
+          newPiece = piece.changeDirection(
+              _getDirectionOfPiece(piece.position.x, piece.position.y));
+        }
+      }
+      else {
+        if (piece.pieceType != state.pieceType) {
+          newPiece = piece.changeDirectionToNone();
+        } else {
+          newPiece = piece.changeDirection(
+              _getDirectionOfPiece(piece.position.x, piece.position.y));
+        }
+      }
+      newPieces.add(newPiece);
+    }
+
+    return Puzzle(pieces: newPieces);
+  }
+
+  PieceType _getPieceType(PieceType pieceType) {
+    return pieceType == PieceType.type1 ? PieceType.type2 : PieceType.type1;
   }
 
   Puzzle _generateEmptyPuzzle() {

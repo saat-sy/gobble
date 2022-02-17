@@ -20,4 +20,24 @@ class Piece extends Equatable {
 
   @override
   List<Object?> get props => [value, position, isBlank];
+
+  Piece changeDirectionToNone() {
+    return Piece(
+      value: value,
+      direction: MyDismissDirection.none,
+      position: position,
+      isBlank: isBlank,
+      pieceType: pieceType
+    );
+  }
+
+  Piece changeDirection(MyDismissDirection direction) {
+    return Piece(
+      value: value,
+      direction: direction,
+      position: position,
+      isBlank: isBlank,
+      pieceType: pieceType
+    );
+  }
 }

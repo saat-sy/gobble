@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gobble/mode/mode_bloc.dart';
 import 'package:gobble/colors/colors.dart';
-import 'package:gobble/models/puzzle.dart';
 import 'package:gobble/puzzle/bloc/puzzle_bloc.dart';
 import 'package:gobble/puzzle/widgets/default_builder.dart';
 import 'package:gobble/puzzle/widgets/start_builder.dart';
@@ -42,7 +41,6 @@ class PuzzleView extends StatelessWidget {
       appBar: getAppBar(),
       body: BlocBuilder<PuzzleBloc, PuzzleState>(
         builder: (context, state) {
-          print('hello moto');
           if (!state.started) {
             return const DefaultBuilder();
           } else {

@@ -112,17 +112,33 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
             : PuzzleType.multi;
 
         BlocProvider.of<PuzzleBloc>(context).add(
-              PieceMoved(
-                fromPiece: piece,
-                toPiece: _getTargetPiece(piece, direction),
-                puzzle: context.read<PuzzleBloc>().state.puzzle,
-                puzzleType: type,
-              ),
-            );
+          PieceMoved(
+            fromPiece: piece,
+            toPiece: _getTargetPiece(piece, direction),
+            puzzle: context.read<PuzzleBloc>().state.puzzle,
+            puzzleType: type,
+          ),
+        );
       },
       confirmDismiss: (direction) => _checkDismissible(direction, piece),
       key: UniqueKey(),
-      // TODO: ADD BACKGROUND
+      background: Container(
+        margin: const EdgeInsets.all(4),
+        height: sideOfPiece,
+        width: sideOfPiece,
+        decoration: BoxDecoration(
+          color: GobbleColors.background,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 0,
+              blurRadius: 3,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+      ),
       child: Container(
         margin: const EdgeInsets.all(4),
         height: sideOfPiece,
@@ -223,18 +239,21 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
             color: GobbleColors.black,
           ),
         ),
+        Text(
+          context.read<PuzzleBloc>().state.pieceType == PieceType.type1 ? "White" : "Black",
+        )
       ],
     );
   }
 
   bool _checkDismissible(MyDismissDirection direction, Piece piece) {
-    if (piece.isBlank) {
-      return false;
-    }
-
     Piece targetPiece = _getTargetPiece(piece, direction);
 
-    if (targetPiece.value == piece.value) return true;
+    if (targetPiece.value == piece.value) {
+      return true;
+    } else if (targetPiece.isBlank) {
+      return true;
+    }
     return false;
   }
 
