@@ -456,7 +456,7 @@ class _MyDismissibleState extends State<MyDismissible>
       _confirming = true;
       final MyDismissDirection direction = _dismissDirection;
       try {
-        return await widget.confirmDismiss!(direction) ?? false;
+        return widget.confirmDismiss!(direction) ?? false;
       } finally {
         _confirming = false;
       }

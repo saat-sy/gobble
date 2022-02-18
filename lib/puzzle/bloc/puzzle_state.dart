@@ -5,28 +5,30 @@ class PuzzleState extends Equatable {
   final Puzzle puzzle;
   final bool started;
   final PuzzleType type;
-  final Piece lastEditedPiece;
+  final PieceType pieceType;
+  final Piece lastMovedPiece;
 
   const PuzzleState({
     this.puzzle = const Puzzle(pieces: <Piece>[]),
     this.started = false,
     this.type = PuzzleType.single,
-    this.lastEditedPiece = const Piece(
-      position: Position(x: 0, y: 0),
-    ),
+    this.pieceType = PieceType.type1,
+    this.lastMovedPiece = const Piece(position: Position(x: 0, y: 0))
   });
 
   PuzzleState copyWith({
     Puzzle? puzzle,
     bool? started,
     PuzzleType? type,
-    Piece? lastEditedPiece,
+    PieceType? pieceType,
+    Piece? lastMovedPiece,
   }) {
     return PuzzleState(
       puzzle: puzzle ?? this.puzzle,
       started: started ?? this.started,
       type: type ?? this.type,
-      lastEditedPiece: lastEditedPiece ?? this.lastEditedPiece,
+      pieceType: pieceType ?? this.pieceType,
+      lastMovedPiece: lastMovedPiece ?? this.lastMovedPiece
     );
   }
 
@@ -35,6 +37,7 @@ class PuzzleState extends Equatable {
         puzzle,
         started,
         type,
-        lastEditedPiece,
+        pieceType,
+        lastMovedPiece
       ];
 }
