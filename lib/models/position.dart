@@ -10,6 +10,6 @@ class Position extends Equatable {
   List<Object?> get props => [x, y];
 
   int convertPositionToIndex() {
-    return (((x - 1) * 6) + y) - 1;
+    return (((x - 1) * 5) + y) - 1;
   }
 }

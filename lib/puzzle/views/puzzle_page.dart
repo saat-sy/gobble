@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gobble/mode/mode_bloc.dart';
 import 'package:gobble/colors/colors.dart';
 import 'package:gobble/puzzle/bloc/puzzle_bloc.dart';
-import 'package:gobble/puzzle/widgets/default_builder.dart';
-import 'package:gobble/puzzle/widgets/start_builder.dart';
+import 'package:gobble/puzzle/widgets/puzzle_builder.dart';
 
-class PuzzlePage extends StatelessWidget {
+class PuzzlePage extends StatefulWidget {
   const PuzzlePage({Key? key}) : super(key: key);
 
+  @override
+  State<PuzzlePage> createState() => _PuzzlePageState();
+}
+
+class _PuzzlePageState extends State<PuzzlePage> {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -18,12 +21,6 @@ class PuzzlePage extends StatelessWidget {
             ..add(
               LoadEmptyPuzzle(),
             ),
-        ),
-        BlocProvider(
-          create: (context) => ModeBloc()
-            ..add(
-              ChangeModeToSingle(),
-            ),
         )
       ],
       child: const PuzzleView(),
@@ -31,25 +28,31 @@ class PuzzlePage extends StatelessWidget {
   }
 }
 
-class PuzzleView extends StatelessWidget {
+class PuzzleView extends StatefulWidget {
   const PuzzleView({Key? key}) : super(key: key);
 
+  @override
+  State<PuzzleView> createState() => _PuzzleViewState();
+}
+
+class _PuzzleViewState extends State<PuzzleView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GobbleColors.background,
       appBar: getAppBar(),
-      body: BlocBuilder<PuzzleBloc, PuzzleState>(
-        builder: (context, state) {
-          if (!state.started) {
-            return const DefaultBuilder();
-          } else {
-            return StartBuilder(
-              type: state.type,
-            );
-          }
-        },
-      ),
+      // body: BlocBuilder<PuzzleBloc, PuzzleState>(
+      //   builder: (context, state) {
+      //     if (!state.started) {
+      //       return const DefaultBuilder();
+      //     } else {
+      //       return StartBuilder(
+      //         type: state.type,
+      //       );
+      //     }
+      //   },
+      // ),
+      body: const PuzzleBuilder(),
     );
   }
 

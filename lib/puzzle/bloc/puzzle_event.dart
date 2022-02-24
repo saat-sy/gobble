@@ -15,6 +15,17 @@ class LoadSinglePuzzle extends PuzzleEvent {}
 
 class LoadMultiPuzzle extends PuzzleEvent {}
 
+class ChangePuzzleType extends PuzzleEvent {
+  final PuzzleType puzzleType;
+
+  const ChangePuzzleType({
+    required this.puzzleType,
+  });
+
+  @override
+  List<Object> get props => [puzzleType];
+}
+
 class PieceMoved extends PuzzleEvent {
   final Piece fromPiece;
   final Piece toPiece;
@@ -29,5 +40,5 @@ class PieceMoved extends PuzzleEvent {
   });
 
   @override
-  List<Object> get props => [fromPiece, toPiece, puzzle];
+  List<Object> get props => [fromPiece, toPiece, puzzle, puzzleType];
 }

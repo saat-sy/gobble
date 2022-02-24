@@ -9,9 +9,7 @@ const double _kDismissThreshold = 0.4;
 
 typedef DismissDirectionCallback = void Function(MyDismissDirection direction);
 
-typedef ConfirmDismissCallback = bool? Function(
-    MyDismissDirection direction
-    );
+typedef ConfirmDismissCallback = bool? Function(MyDismissDirection direction);
 
 typedef DismissUpdateCallback = void Function(DismissUpdateDetails details);
 
@@ -93,13 +91,16 @@ class DismissUpdateDetails {
   DismissUpdateDetails(
       {this.direction = MyDismissDirection.horizontal,
       this.reached = false,
-      this.previousReached = false});
+      this.previousReached = false,
+      required this.percentageCompleted});
 
   final MyDismissDirection direction;
 
   final bool reached;
 
   final bool previousReached;
+
+  final double percentageCompleted;
 }
 
 class _DismissibleClipper extends CustomClipper<Rect> {
@@ -327,10 +328,10 @@ class _MyDismissibleState extends State<MyDismissible>
       _dismissThresholdReached = _moveController!.value >
           (widget.dismissThresholds[_dismissDirection] ?? _kDismissThreshold);
       final DismissUpdateDetails details = DismissUpdateDetails(
-        direction: _dismissDirection,
-        reached: _dismissThresholdReached,
-        previousReached: oldDismissThresholdReached,
-      );
+          direction: _dismissDirection,
+          reached: _dismissThresholdReached,
+          previousReached: oldDismissThresholdReached,
+          percentageCompleted: _moveController!.value);
       widget.onUpdate!(details);
     }
   }

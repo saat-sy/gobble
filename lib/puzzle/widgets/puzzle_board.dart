@@ -1,9 +1,9 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gobble/colors/colors.dart';
 import 'package:gobble/dismissible/my_dismissible.dart';
-import 'package:gobble/mode/mode_bloc.dart';
 import 'package:gobble/models/piece.dart';
 import 'package:gobble/models/position.dart';
 import 'package:gobble/models/puzzle.dart';
@@ -51,36 +51,24 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
   Widget build(BuildContext context) {
     sideOfBoard = MediaQuery.of(context).size.width;
 
-    sideOfPiece = ((sideOfBoard * 0.9) / 6.0) - 8;
+    sideOfPiece = ((sideOfBoard * 0.9) / 5.0) - 8;
 
-    return Stack(
-      children: [
-        Center(
-          child: Container(
-            margin:
-                EdgeInsets.only(bottom: widget.tabHeight + widget.marginForTab),
-            width: sideOfBoard,
-            height: sideOfBoard,
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
-              itemCount: 36,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 6,
-              ),
-              itemBuilder: (context, index) => getPiece(
-                context.read<PuzzleBloc>().state.puzzle.pieces[index],
-              ),
-            ),
+    return Center(
+      child: Container(
+        width: sideOfBoard,
+        height: sideOfBoard,
+        child: GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
+          itemCount: 25,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 5,
+          ),
+          itemBuilder: (context, index) => getPiece(
+            context.read<PuzzleBloc>().state.puzzle.pieces[index],
           ),
         ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            getBottomUI(context),
-          ],
-        ),
-      ],
+      ),
     );
   }
 
@@ -88,6 +76,8 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
     Color pieceColor = GobbleColors.pieceType1;
     String value = "";
     Color valueColor = GobbleColors.valueType1;
+
+    Tween<double> _tween = Tween<double>(begin: 0, end: 1);
 
     if (!piece.isBlank) {
       // ASSIGN VAL TO THE ACTUAL VALUE
@@ -104,25 +94,18 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
           : GobbleColors.valueType2;
     }
 
+    Color shadowColor = Colors.black.withOpacity(0.2);
+
     return MyDismissible(
       direction: piece.direction,
-      onDismissed: (direction) {
-        PuzzleType type = context.read<ModeBloc>().state is ModeSingle
-            ? PuzzleType.single
-            : PuzzleType.multi;
-
-        BlocProvider.of<PuzzleBloc>(context).add(
-          PieceMoved(
-            fromPiece: piece,
-            toPiece: _getTargetPiece(piece, direction),
-            puzzle: context.read<PuzzleBloc>().state.puzzle,
-            puzzleType: type,
-          ),
-        );
-      },
       confirmDismiss: (direction) => _checkDismissible(direction, piece),
+      onDismissed: (direction) {
+        _movePiece(piece, direction);
+      },
+      resizeDuration: null,
       key: UniqueKey(),
-      background: Container(
+      secondaryBackground: AnimatedContainer(
+        duration: const Duration(milliseconds: 50),
         margin: const EdgeInsets.all(4),
         height: sideOfPiece,
         width: sideOfPiece,
@@ -139,12 +122,13 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
           ],
         ),
       ),
-      child: Container(
+      background: AnimatedContainer(
+        duration: const Duration(milliseconds: 50),
         margin: const EdgeInsets.all(4),
         height: sideOfPiece,
         width: sideOfPiece,
         decoration: BoxDecoration(
-          color: pieceColor,
+          color: GobbleColors.background,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -155,94 +139,45 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
             ),
           ],
         ),
-        child: Center(
-          child: Text(
-            value,
-            style: TextStyle(
-                color: valueColor, fontSize: 30, fontWeight: FontWeight.w500),
+      ),
+      child: TweenAnimationBuilder<double>(
+        tween: _tween,
+        duration: Duration(
+            milliseconds: context.read<PuzzleBloc>().state.first
+                ? 350 + Random().nextInt(350)
+                : 0),
+        curve: Curves.easeInExpo,
+        builder: (context, scale, child) {
+          return Transform.scale(
+            scale: scale,
+            child: child,
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.all(4),
+          height: sideOfPiece,
+          width: sideOfPiece,
+          decoration: BoxDecoration(
+            color: pieceColor,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                spreadRadius: 0,
+                blurRadius: 3,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              value,
+              style: TextStyle(
+                  color: valueColor, fontSize: 30, fontWeight: FontWeight.w500),
+            ),
           ),
         ),
       ),
-    );
-  }
-
-  BlocBuilder getBottomUI(BuildContext context) {
-    bool isSingle = true;
-
-    final state = context.read<ModeBloc>().state;
-    if (state is ModeMulti) isSingle = false;
-
-    return BlocBuilder<PuzzleBloc, PuzzleState>(
-      builder: (context, state) {
-        if (!state.started) {
-          return _startButton(context, isSingle);
-        } else {
-          return _finishButton(context, isSingle);
-        }
-      },
-    );
-  }
-
-  Container _startButton(BuildContext context, bool isSingle) {
-    return Container(
-      margin: EdgeInsets.symmetric(
-          horizontal: MediaQuery.of(context).size.width * 0.05,
-          vertical: MediaQuery.of(context).size.width * 0.1),
-      child: Align(
-        alignment: Alignment.center,
-        child: ElevatedButton(
-          onPressed: () {
-            // START GAME PRESSED
-            context
-                .read<PuzzleBloc>()
-                .add(isSingle ? LoadSinglePuzzle() : LoadMultiPuzzle());
-          },
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size.fromHeight(37.5),
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-            ),
-            primary: GobbleColors.black,
-            onPrimary: GobbleColors.textLight,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50),
-            ),
-          ),
-          child: const Text("START GAME"),
-        ),
-      ),
-    );
-  }
-
-  Row _finishButton(BuildContext context, bool isSingle) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        IconButton(
-          onPressed: () {
-            context
-                .read<PuzzleBloc>()
-                .add(isSingle ? LoadSinglePuzzle() : LoadMultiPuzzle());
-          },
-          icon: const Icon(
-            CupertinoIcons.restart,
-            color: GobbleColors.black,
-          ),
-        ),
-        IconButton(
-          onPressed: () {
-            context.read<PuzzleBloc>().add(LoadEmptyPuzzle());
-          },
-          icon: const Icon(
-            CupertinoIcons.check_mark,
-            color: GobbleColors.black,
-          ),
-        ),
-        Text(
-          context.read<PuzzleBloc>().state.pieceType == PieceType.type1 ? "White" : "Black",
-        )
-      ],
     );
   }
 
@@ -250,11 +185,24 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
     Piece targetPiece = _getTargetPiece(piece, direction);
 
     if (targetPiece.value == piece.value) {
+      // _movePiece(piece, direction);
       return true;
     } else if (targetPiece.isBlank) {
+      // _movePiece(piece, direction);
       return true;
     }
     return false;
+  }
+
+  void _movePiece(Piece piece, MyDismissDirection direction) {
+    BlocProvider.of<PuzzleBloc>(context).add(
+      PieceMoved(
+        fromPiece: piece,
+        toPiece: _getTargetPiece(piece, direction),
+        puzzle: context.read<PuzzleBloc>().state.puzzle,
+        puzzleType: context.read<PuzzleBloc>().state.puzzleType,
+      ),
+    );
   }
 
   Piece _getTargetPiece(Piece piece, MyDismissDirection direction) {

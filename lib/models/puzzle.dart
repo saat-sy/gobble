@@ -2,8 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:gobble/models/piece.dart';
 
 enum PuzzleType {
-  single,
-  multi
+  offline,
+  online
 }
 
 class Puzzle extends Equatable {
