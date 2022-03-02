@@ -1,12 +1,11 @@
-import 'dart:math';
-
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:gobble/dismissible/my_dismissible.dart';
 import 'package:gobble/models/piece.dart';
 import 'package:gobble/models/position.dart';
 import 'package:gobble/models/puzzle.dart';
-
+import 'package:gobble/puzzle/puzzle_functions.dart';
 part 'puzzle_event.dart';
 part 'puzzle_state.dart';
 
@@ -21,44 +20,166 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   void _changePuzzleType(ChangePuzzleType event, Emitter<PuzzleState> emit) {
     emit(
-      state.copyWith(type: event.puzzleType),
+      state.copyWith(puzzleType: event.puzzleType),
     );
   }
 
   void _onLoadEmpty(LoadEmptyPuzzle event, Emitter<PuzzleState> emit) {
     emit(
       PuzzleState(
-        puzzle: _generateEmptyPuzzle(),
-        started: false,
-      ),
+          puzzle: PuzzleFunctions.generateEmptyPuzzle(),
+          started: false,
+          puzzleType: PuzzleType.offline),
     );
   }
 
   void _onLoadSingle(LoadSinglePuzzle event, Emitter<PuzzleState> emit) {
     emit(
       state.copyWith(
-        puzzle: _makeOppositeTypeImmovable(_generatePuzzle(), first: true),
+        puzzle: _makePieceImmovable(PuzzleFunctions.generatePuzzle(),
+            currentPlayer: Player.one, type: PuzzleType.offline),
         started: true,
         first: true,
+        puzzleType: PuzzleType.offline,
+        currentPlayer: Player.one,
       ),
     );
   }
 
-  void _onLoadMulti(LoadMultiPuzzle event, Emitter<PuzzleState> emit) {
-    emit(
-      state.copyWith(
-        puzzle: _makeOppositeTypeImmovable(_generatePuzzle(), first: true),
-        started: true,
-        first: true,
-      ),
+  void _onLoadMulti(LoadMultiPuzzle event, Emitter<PuzzleState> emit) async {
+    Puzzle puz = event.puzzle;
+
+    await emit.forEach(
+      FirebaseFirestore.instance
+          .collection("Rooms")
+          .doc(event.code)
+          .snapshots(),
+      onData: (DocumentSnapshot snapshot) {
+        if (snapshot.get('lastUpdatedPiece')[0] == -1 ||
+            snapshot.get('lastUpdatedPiece')[1] == -1) {
+          return state.copyWith(
+            puzzle: _makePieceImmovable(puz,
+                player: event.player,
+                currentPlayer: Player.one,
+                type: PuzzleType.online),
+            started: true,
+            first: true,
+            code: event.code,
+            player: event.player,
+            currentPlayer: Player.one,
+            puzzleType: PuzzleType.online,
+          );
+        } else {
+          List<Piece> pieces = event.puzzle.pieces;
+
+          Position fromPosition = Position(
+              x: snapshot.get('lastUpdatedPiece')[0],
+              y: snapshot.get('lastUpdatedPiece')[1]);
+
+          Position toPosition = Position(
+              x: snapshot.get('lastUpdatedPiece')[2],
+              y: snapshot.get('lastUpdatedPiece')[3]);
+
+          Piece fromPiece = pieces[fromPosition.convertPositionToIndex()];
+
+          Piece toPiece = pieces[toPosition.convertPositionToIndex()];
+
+          late Piece newFromPiece;
+          late Piece newToPiece;
+
+          newFromPiece = Piece(
+            isBlank: true,
+            position: fromPiece.position,
+            direction: MyDismissDirection.none,
+          );
+
+          if (toPiece.isBlank) {
+            newToPiece = Piece(
+                position: toPiece.position,
+                value: fromPiece.value,
+                pieceType: fromPiece.pieceType,
+                direction: PuzzleFunctions.getDirectionOfPiece(
+                    toPiece.position.x, toPiece.position.y));
+          } else {
+            newToPiece = Piece(
+              position: toPiece.position,
+              value: fromPiece.pieceType == toPiece.pieceType
+                  ? fromPiece.value + toPiece.value
+                  : fromPiece.value,
+              pieceType: fromPiece.pieceType,
+              direction: PuzzleFunctions.getDirectionOfPiece(
+                  toPiece.position.x, toPiece.position.y),
+            );
+          }
+
+          pieces[fromPiece.position.convertPositionToIndex()] = newFromPiece;
+          pieces[toPiece.position.convertPositionToIndex()] = newToPiece;
+
+          Puzzle newPuzzle = Puzzle(pieces: pieces);
+          Player currentPlayer =
+              snapshot.get("currentPlayer") == "one" ? Player.one : Player.two;
+
+          if (currentPlayer == Player.one) {
+            currentPlayer = Player.two;
+          } else {
+            currentPlayer = Player.one;
+          }
+
+          return state.copyWith(
+            puzzle: _makePieceImmovable(
+              newPuzzle,
+              currentPlayer: currentPlayer,
+              player: state.player,
+              type: PuzzleType.online,
+            ),
+            pieceType: _getPieceType(state.pieceType),
+            lastMovedPiece: newToPiece,
+            first: false,
+            currentPlayer: currentPlayer,
+          );
+        }
+      },
     );
   }
 
-  void _pieceMoved(PieceMoved event, Emitter<PuzzleState> emit) {
+  void _pieceMoved(PieceMoved event, Emitter<PuzzleState> emit) async {
     List<Piece> pieces = event.puzzle.pieces;
 
     late Piece newFromPiece;
     late Piece newToPiece;
+    Player newCurrentPlayer = Player.one;
+
+    if (state.puzzleType == PuzzleType.online) {
+      Player currentOnlinePlayer = Player.one;
+      // GET PLAYER FROM FIREBASE
+      await FirebaseFirestore.instance
+          .collection("Rooms")
+          .doc(state.code)
+          .get()
+          .then((value) {
+        currentOnlinePlayer =
+            value.get("currentPlayer") == "one" ? Player.one : Player.two;
+      });
+
+      if (currentOnlinePlayer == Player.one) {
+        newCurrentPlayer = Player.two;
+      } else {
+        newCurrentPlayer = Player.one;
+      }
+
+      await FirebaseFirestore.instance
+          .collection("Rooms")
+          .doc(state.code)
+          .update({
+        'lastUpdatedPiece': [
+          event.fromPiece.position.x,
+          event.fromPiece.position.y,
+          event.toPiece.position.x,
+          event.toPiece.position.y,
+        ],
+        'currentPlayer': newCurrentPlayer == Player.one ? "one" : "two",
+      });
+    }
 
     newFromPiece = Piece(
       isBlank: true,
@@ -71,7 +192,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           position: event.toPiece.position,
           value: event.fromPiece.value,
           pieceType: event.fromPiece.pieceType,
-          direction: _getDirectionOfPiece(
+          direction: PuzzleFunctions.getDirectionOfPiece(
               event.toPiece.position.x, event.toPiece.position.y));
     } else {
       newToPiece = Piece(
@@ -80,7 +201,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             ? event.fromPiece.value + event.toPiece.value
             : event.fromPiece.value,
         pieceType: event.fromPiece.pieceType,
-        direction: _getDirectionOfPiece(
+        direction: PuzzleFunctions.getDirectionOfPiece(
             event.toPiece.position.x, event.toPiece.position.y),
       );
     }
@@ -90,7 +211,21 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
     Puzzle newPuzzle = Puzzle(pieces: pieces);
 
-    newPuzzle = _makeOppositeTypeImmovable(newPuzzle);
+    if (state.puzzleType == PuzzleType.offline) {
+      Player currentPlayer = state.currentPlayer;
+      if (currentPlayer == Player.one) {
+        newCurrentPlayer = Player.two;
+      } else {
+        newCurrentPlayer = Player.one;
+      }
+      newPuzzle = _makePieceImmovable(newPuzzle,
+          type: state.puzzleType, currentPlayer: newCurrentPlayer);
+    } else {
+      newPuzzle = _makePieceImmovable(newPuzzle,
+          type: state.puzzleType,
+          currentPlayer: newCurrentPlayer,
+          player: state.player);
+    }
 
     emit(
       state.copyWith(
@@ -98,30 +233,66 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         pieceType: _getPieceType(state.pieceType),
         lastMovedPiece: newToPiece,
         first: false,
+        currentPlayer: newCurrentPlayer,
       ),
     );
   }
 
-  Puzzle _makeOppositeTypeImmovable(Puzzle puzzle, {bool first = false}) {
+  Puzzle _makePieceImmovable(Puzzle puzzle,
+      {Player player = Player.one,
+      required Player currentPlayer,
+      required PuzzleType type}) {
     List<Piece> newPieces = <Piece>[];
 
     for (var piece in puzzle.pieces) {
-      Piece newPiece;
-      if (!first) {
-        if (piece.pieceType == state.pieceType) {
-          newPiece = piece.changeDirectionToNone();
+      Piece newPiece = const Piece(position: Position(x: -1, y: -1));
+
+      if (type == PuzzleType.offline) {
+        // IF PLAYER IS ONE
+        if (currentPlayer == Player.one) {
+          // CHANGE TYPE 2 TO NONE
+          if (piece.pieceType == PieceType.type2) {
+            newPiece = piece.changeDirectionToNone();
+          } else {
+            newPiece = piece.changeDirection(
+                PuzzleFunctions.getDirectionOfPiece(
+                    piece.position.x, piece.position.y));
+          }
         } else {
-          newPiece = piece.changeDirection(
-              _getDirectionOfPiece(piece.position.x, piece.position.y));
+          if (piece.pieceType == PieceType.type1) {
+            newPiece = piece.changeDirectionToNone();
+          } else {
+            newPiece = piece.changeDirection(
+                PuzzleFunctions.getDirectionOfPiece(
+                    piece.position.x, piece.position.y));
+          }
         }
       } else {
-        if (piece.pieceType != state.pieceType) {
-          newPiece = piece.changeDirectionToNone();
+        if (currentPlayer == player) {
+          // IF PLAYER IS ONE
+          if (currentPlayer == Player.one) {
+            // CHANGE TYPE 2 TO NONE
+            if (piece.pieceType == PieceType.type2) {
+              newPiece = piece.changeDirectionToNone();
+            } else {
+              newPiece = piece.changeDirection(
+                  PuzzleFunctions.getDirectionOfPiece(
+                      piece.position.x, piece.position.y));
+            }
+          } else {
+            if (piece.pieceType == PieceType.type1) {
+              newPiece = piece.changeDirectionToNone();
+            } else {
+              newPiece = piece.changeDirection(
+                  PuzzleFunctions.getDirectionOfPiece(
+                      piece.position.x, piece.position.y));
+            }
+          }
         } else {
-          newPiece = piece.changeDirection(
-              _getDirectionOfPiece(piece.position.x, piece.position.y));
+          newPiece = piece.changeDirectionToNone();
         }
       }
+
       newPieces.add(newPiece);
     }
 
@@ -130,105 +301,5 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   PieceType _getPieceType(PieceType pieceType) {
     return pieceType == PieceType.type1 ? PieceType.type2 : PieceType.type1;
-  }
-
-  Puzzle _generateEmptyPuzzle() {
-    List<Piece> listOfPieces = <Piece>[];
-
-    for (int i = 1; i <= 5; i++) {
-      for (int j = 1; j <= 5; j++) {
-        Position position = Position(x: i, y: j);
-
-        Piece piece = Piece(
-          position: position,
-          isBlank: true,
-        );
-
-        listOfPieces.add(piece);
-      }
-    }
-
-    return Puzzle(pieces: listOfPieces);
-  }
-
-  Puzzle _generatePuzzle() {
-    List<Piece> listOfPieces = <Piece>[];
-    Random random = Random();
-    List<int> possibleDigits = <int>[2, 4, 8];
-
-    // THE COUNTER THAT COUNTS TILL 18 POSITIONS
-    int counter = 0;
-
-    // CREATE A LIST OF 18 TYPE1's AND 18 TYPE2's
-    List<PieceType> pieceTypes = <PieceType>[];
-    for (int i = 0; i < 25; i++) {
-      pieceTypes.add(i < 13 ? PieceType.type1 : PieceType.type2);
-    }
-    // AND SHUFFLE IT
-    pieceTypes.shuffle();
-
-    for (int i = 1; i <= 5; i++) {
-      for (int j = 1; j <= 5; j++) {
-        Position position = Position(x: i, y: j);
-
-        int value = possibleDigits[random.nextInt(3)];
-        PieceType pieceType = pieceTypes[counter];
-        MyDismissDirection direction = _getDirectionOfPiece(i, j);
-
-        Piece piece = Piece(
-          position: position,
-          value: value,
-          pieceType: pieceType,
-          direction: direction,
-        );
-
-        listOfPieces.add(piece);
-
-        counter++;
-      }
-    }
-
-    return Puzzle(pieces: listOfPieces);
-  }
-
-  MyDismissDirection _getDirectionOfPiece(int x, int y) {
-    // 11 12 13 14 15 16
-    // 21 22 23 24 25 26
-    // 31 32 33 34 35 36
-    // 41 42 43 44 45 46
-    // 51 52 53 54 55 56
-    // 61 62 63 64 65 66
-
-    if (x == 1) {
-      if (y != 5 && y != 1) {
-        return MyDismissDirection.top;
-      } else if (y == 5) {
-        return MyDismissDirection.topRight;
-      } else {
-        return MyDismissDirection.topLeft;
-      }
-    }
-    // BOTTOM
-    if (x == 5) {
-      if (y != 5 && y != 1) {
-        return MyDismissDirection.bottom;
-      } else if (y == 5) {
-        return MyDismissDirection.bottomRight;
-      } else {
-        return MyDismissDirection.bottomLeft;
-      }
-    }
-    // LEFT
-    else if (y == 1) {
-      return MyDismissDirection.left;
-    }
-    // RIGHT
-    else if (y == 5) {
-      return MyDismissDirection.right;
-    }
-    // ALL OTHER PIECES
-    else {
-      return MyDismissDirection.all;
-    }
   }
 }

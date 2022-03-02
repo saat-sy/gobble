@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gobble/colors/colors.dart';
+import 'package:gobble/multiplayer/multiplayer_bloc.dart';
 import 'package:gobble/puzzle/bloc/puzzle_bloc.dart';
 import 'package:gobble/puzzle/widgets/puzzle_builder.dart';
 
@@ -20,6 +21,12 @@ class _PuzzlePageState extends State<PuzzlePage> {
           create: (context) => PuzzleBloc()
             ..add(
               LoadEmptyPuzzle(),
+            ),
+        ),
+        BlocProvider(
+          create: (context) => MultiplayerBloc()
+            ..add(
+              MultiplayerInitEvent(),
             ),
         )
       ],
@@ -41,17 +48,6 @@ class _PuzzleViewState extends State<PuzzleView> {
     return Scaffold(
       backgroundColor: GobbleColors.background,
       appBar: getAppBar(),
-      // body: BlocBuilder<PuzzleBloc, PuzzleState>(
-      //   builder: (context, state) {
-      //     if (!state.started) {
-      //       return const DefaultBuilder();
-      //     } else {
-      //       return StartBuilder(
-      //         type: state.type,
-      //       );
-      //     }
-      //   },
-      // ),
       body: const PuzzleBuilder(),
     );
   }

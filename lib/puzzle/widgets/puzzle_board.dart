@@ -54,7 +54,7 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
     sideOfPiece = ((sideOfBoard * 0.9) / 5.0) - 8;
 
     return Center(
-      child: Container(
+      child: SizedBox(
         width: sideOfBoard,
         height: sideOfBoard,
         child: GridView.builder(

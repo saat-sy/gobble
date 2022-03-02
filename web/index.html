@@ -100,5 +100,25 @@
       loadMainDartJs();
     }
   </script>
+
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCoPEtXXQ8KDo6S5eEUoVwFe0NGIL0mcGo",
+      authDomain: "gobble-game.firebaseapp.com",
+      projectId: "gobble-game",
+      storageBucket: "gobble-game.appspot.com",
+      messagingSenderId: "368649451633",
+      appId: "1:368649451633:web:9a9a75efceb445beff03d0"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+  </script>
 </body>
 </html>

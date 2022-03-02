@@ -40,4 +40,12 @@ class Piece extends Equatable {
       pieceType: pieceType
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'value': value,
+      'position': [position.x, position.y],
+      'pieceType': pieceType == PieceType.type1 ? 1 : 2
+    };
+  }
 }

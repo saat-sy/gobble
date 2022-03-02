@@ -13,7 +13,20 @@ class LoadEmptyPuzzle extends PuzzleEvent {}
 
 class LoadSinglePuzzle extends PuzzleEvent {}
 
-class LoadMultiPuzzle extends PuzzleEvent {}
+class LoadMultiPuzzle extends PuzzleEvent {
+  final Player player;
+  final Puzzle puzzle;
+  final String code;
+
+  const LoadMultiPuzzle({
+    required this.player,
+    required this.puzzle,
+    required this.code,
+  });
+
+  @override
+  List<Object> get props => [player, puzzle, code];
+}
 
 class ChangePuzzleType extends PuzzleEvent {
   final PuzzleType puzzleType;

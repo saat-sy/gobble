@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "368649451633",
+    "project_id": "gobble-game",
+    "storage_bucket": "gobble-game.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:368649451633:android:dfb6691257e2d8c7ff03d0",
+        "android_client_info": {
+          "package_name": "com.example.gobble"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "368649451633-bds7re49ajltdaqt75s4vcqonrtni60m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKSAQAdIzGUEESnaGAM-C8B3rpSTG8HBc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "368649451633-bds7re49ajltdaqt75s4vcqonrtni60m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
