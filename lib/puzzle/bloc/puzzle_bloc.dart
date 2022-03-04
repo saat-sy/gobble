@@ -55,6 +55,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           .doc(event.code)
           .snapshots(),
       onData: (DocumentSnapshot snapshot) {
+        Player cPlayer =
+            snapshot.get("currentPlayer") == "one" ? Player.one : Player.two;
+
         if (snapshot.get('lastUpdatedPiece')[0] == -1 ||
             snapshot.get('lastUpdatedPiece')[1] == -1) {
           return state.copyWith(
@@ -116,26 +119,18 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           pieces[toPiece.position.convertPositionToIndex()] = newToPiece;
 
           Puzzle newPuzzle = Puzzle(pieces: pieces);
-          Player currentPlayer =
-              snapshot.get("currentPlayer") == "one" ? Player.one : Player.two;
-
-          if (currentPlayer == Player.one) {
-            currentPlayer = Player.two;
-          } else {
-            currentPlayer = Player.one;
-          }
 
           return state.copyWith(
             puzzle: _makePieceImmovable(
               newPuzzle,
-              currentPlayer: currentPlayer,
+              currentPlayer: cPlayer,
               player: state.player,
               type: PuzzleType.online,
             ),
             pieceType: _getPieceType(state.pieceType),
             lastMovedPiece: newToPiece,
             first: false,
-            currentPlayer: currentPlayer,
+            currentPlayer: cPlayer,
           );
         }
       },

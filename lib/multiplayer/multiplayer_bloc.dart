@@ -22,19 +22,23 @@ class MultiplayerBloc extends Bloc<MultiplayerEvent, MultiplayerState> {
   CollectionReference rooms = FirebaseFirestore.instance.collection("Rooms");
 
   void _init(MultiplayerInitEvent event, Emitter<MultiplayerState> emit) async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? code = prefs.getString(GobbleStrings.code);
+    // final prefs = await SharedPreferences.getInstance();
+    // final String? code = prefs.getString(GobbleStrings.code);
 
-    if (code != null) {
-      emit(InitMultiPlayerState(
-        isCodeAvailable: true,
-        code: code,
-      ));
-    } else {
-      emit(const InitMultiPlayerState(
-        isCodeAvailable: false,
-      ));
-    }
+    // if (code != null) {
+    //   emit(InitMultiPlayerState(
+    //     isCodeAvailable: true,
+    //     code: code,
+    //   ));
+    // } else {
+    //   emit(const InitMultiPlayerState(
+    //     isCodeAvailable: false,
+    //   ));
+    // }
+
+    emit(const InitMultiPlayerState(
+      isCodeAvailable: false,
+    ));
   }
 
   void _generateCode(GenerateCode event, Emitter<MultiplayerState> emit) async {
@@ -67,6 +71,7 @@ class MultiplayerBloc extends Bloc<MultiplayerEvent, MultiplayerState> {
     await emit.forEach(rooms.doc(code).snapshots(),
         onData: (DocumentSnapshot snapshot) {
       if (snapshot.get('secondPlayer')) {
+        print('yeey');
         var puzMap = snapshot.get('puzzle');
 
         List<Piece> pieces = [];
@@ -86,8 +91,10 @@ class MultiplayerBloc extends Bloc<MultiplayerEvent, MultiplayerState> {
 
         Puzzle newPuzzle = Puzzle(pieces: pieces);
 
-        return LoadMultiBlocPuzzle(player: Player.one, puzzle: newPuzzle, code: code);
+        return LoadMultiBlocPuzzle(
+            player: Player.one, puzzle: newPuzzle, code: code);
       } else {
+        print('what!?');
         return OnCodeGenerated(code: code);
       }
     });
@@ -112,10 +119,7 @@ class MultiplayerBloc extends Bloc<MultiplayerEvent, MultiplayerState> {
       }).then((value) {
         emit(
           LoadMultiBlocPuzzle(
-            player: Player.two,
-            puzzle: puzzle,
-            code: event.code
-          ),
+              player: Player.two, puzzle: puzzle, code: event.code),
         );
       });
     }
