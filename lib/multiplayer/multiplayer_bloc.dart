@@ -17,31 +17,30 @@ class MultiplayerBloc extends Bloc<MultiplayerEvent, MultiplayerState> {
     on<MultiplayerInitEvent>(_init);
     on<GenerateCode>(_generateCode);
     on<JoinUsingCode>(_joinUsingCode);
+    on<CancelInvite>(_cancelInvite);
   }
 
   CollectionReference rooms = FirebaseFirestore.instance.collection("Rooms");
 
   void _init(MultiplayerInitEvent event, Emitter<MultiplayerState> emit) async {
-    // final prefs = await SharedPreferences.getInstance();
-    // final String? code = prefs.getString(GobbleStrings.code);
+    final prefs = await SharedPreferences.getInstance();
+    final String? code = prefs.getString(GobbleStrings.code);
 
-    // if (code != null) {
-    //   emit(InitMultiPlayerState(
-    //     isCodeAvailable: true,
-    //     code: code,
-    //   ));
-    // } else {
-    //   emit(const InitMultiPlayerState(
-    //     isCodeAvailable: false,
-    //   ));
-    // }
-
-    emit(const InitMultiPlayerState(
-      isCodeAvailable: false,
-    ));
+    if (code != null) {
+      emit(InitMultiPlayerState(
+        isCodeAvailable: true,
+        code: code,
+      ));
+    } else {
+      emit(const InitMultiPlayerState(
+        isCodeAvailable: false,
+      ));
+    }
   }
 
   void _generateCode(GenerateCode event, Emitter<MultiplayerState> emit) async {
+    emit(LoadingGeneratedCodeState());
+
     int min = 100000;
     int max = 999999;
     var codeInt, doc;
@@ -71,7 +70,6 @@ class MultiplayerBloc extends Bloc<MultiplayerEvent, MultiplayerState> {
     await emit.forEach(rooms.doc(code).snapshots(),
         onData: (DocumentSnapshot snapshot) {
       if (snapshot.get('secondPlayer')) {
-        print('yeey');
         var puzMap = snapshot.get('puzzle');
 
         List<Piece> pieces = [];
@@ -94,7 +92,6 @@ class MultiplayerBloc extends Bloc<MultiplayerEvent, MultiplayerState> {
         return LoadMultiBlocPuzzle(
             player: Player.one, puzzle: newPuzzle, code: code);
       } else {
-        print('what!?');
         return OnCodeGenerated(code: code);
       }
     });
@@ -116,12 +113,31 @@ class MultiplayerBloc extends Bloc<MultiplayerEvent, MultiplayerState> {
         'secondPlayer': true,
         'lastUpdatedPiece': [-1, -1, -1, -1],
         'currentPlayer': 'one',
-      }).then((value) {
-        emit(
-          LoadMultiBlocPuzzle(
-              player: Player.two, puzzle: puzzle, code: event.code),
-        );
-      });
+        'started': false,
+        'rejected': false,
+      }).then(
+        (value) async {
+          await emit.forEach(
+            rooms.doc(event.code).snapshots(),
+            onData: (DocumentSnapshot doc) {
+              if (doc.get('started')) {
+                return LoadMultiBlocPuzzle(
+                    player: Player.two, puzzle: puzzle, code: event.code);
+              } else if (doc.get('rejected')) {
+                return OnGameCancelled();
+              } else {
+                return WaitingForFirstPlayer();
+              }
+            },
+          );
+        },
+      );
     }
+  }
+
+  void _cancelInvite(CancelInvite event, Emitter<MultiplayerState> emit) async {
+    await rooms.doc(event.code).update({'rejected': true}).then((value) {
+      emit(MultiplayerInitial());
+    });
   }
 }

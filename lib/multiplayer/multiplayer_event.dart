@@ -22,3 +22,12 @@ class JoinUsingCode extends MultiplayerEvent {
   @override
   List<Object> get props => [code];
 }
+
+class CancelInvite extends MultiplayerEvent {
+  final String code;
+
+  const CancelInvite({required this.code});
+
+  @override
+  List<Object> get props => [code];
+}

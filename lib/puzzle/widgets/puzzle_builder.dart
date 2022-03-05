@@ -1,13 +1,15 @@
 import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:gobble/colors/colors.dart';
 import 'package:gobble/models/puzzle.dart';
 import 'package:gobble/multiplayer/multiplayer_bloc.dart';
 import 'package:gobble/puzzle/puzzle.dart';
 import 'package:gobble/puzzle/widgets/puzzle_board.dart';
+import 'package:gobble/puzzle/widgets/start_or_not.dart';
+import 'package:gobble/puzzle/widgets/waiting_to_start.dart';
 
 class PuzzleBuilder extends StatefulWidget {
   const PuzzleBuilder({Key? key}) : super(key: key);
@@ -28,6 +30,9 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
   // CODE SWITCHER
   late AnimationController _codeController;
   late Animation<double> _codeAnimation;
+
+  final TextEditingController _textController = TextEditingController();
+  final reg = RegExp(r'^[0-9]{6}$');
 
   @override
   void initState() {
@@ -58,6 +63,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
     _switcherController.dispose();
     _blurController.dispose();
     _codeController.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
@@ -141,11 +147,58 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
   BlocConsumer _onlineButtonsBuilder() {
     return BlocConsumer<MultiplayerBloc, MultiplayerState>(
       listener: ((context, state) {
-        if (state is InvalidCode) {
+        if (state is LoadMultiBlocPuzzle) {
+          if (state.player == Player.one) {
+            BuildContext buildContext = context;
+            showGeneralDialog(
+              context: context,
+              barrierDismissible: false,
+              pageBuilder: (context, __, ___) {
+                return StartOrNotDialog(
+                  yesPressed: () {
+                    _switcherController.forward();
+                    buildContext.read<PuzzleBloc>().add(
+                          LoadMultiPuzzle(
+                            player: state.player,
+                            puzzle: state.puzzle,
+                            code: state.code,
+                          ),
+                        );
+                    Navigator.pop(context);
+                  },
+                  noPressed: () {
+                    buildContext
+                        .read<MultiplayerBloc>()
+                        .add(CancelInvite(code: state.code));
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            );
+          } else {
+            Navigator.pop(context);
+            context.read<PuzzleBloc>().add(
+                  LoadMultiPuzzle(
+                    player: state.player,
+                    puzzle: state.puzzle,
+                    code: state.code,
+                  ),
+                );
+          }
+        } else if (state is WaitingForFirstPlayer) {
+          showGeneralDialog(
+            context: context,
+            barrierDismissible: false,
+            pageBuilder: (context, __, ___) {
+              return const WaitingToStartDialog();
+            },
+          );
+        } else if (state is OnGameCancelled) {
+          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text(
-                'Invalid Code',
+                'Player 1 Cancelled your request',
               ),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -153,17 +206,20 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
               ),
             ),
           );
-        } else if (state is LoadMultiBlocPuzzle) {
-          context.read<PuzzleBloc>().add(
-                LoadMultiPuzzle(
-                  player: state.player,
-                  puzzle: state.puzzle,
-                  code: state.code,
-                ),
-              );
         }
       }),
+      buildWhen: (previous, newState) {
+        if (newState is LoadingState ||
+            newState is InvalidCode ||
+            newState is WaitingForFirstPlayer ||
+            newState is WaitingForSecondPlayer) {
+          return false;
+        } else {
+          return true;
+        }
+      },
       builder: (context, state) {
+        // INITIALIZE
         CrossFadeState fadeState = CrossFadeState.showFirst;
         String code = "";
 
@@ -179,298 +235,172 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
           code = state.code;
         }
 
-        return AnimatedCrossFade(
-          firstChild: _startOnlineGame(),
-          secondChild: _generateOnlineCode(code),
-          duration: const Duration(milliseconds: 400),
-          crossFadeState: fadeState,
-          firstCurve: Curves.easeOut,
-          secondCurve: Curves.easeOut,
+        return Container(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.width,
+          padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.15),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedCrossFade(
+                firstChild: _startOnlineGame(),
+                secondChild: _generateOnlineCode(code),
+                duration: const Duration(milliseconds: 400),
+                crossFadeState: fadeState,
+                firstCurve: Curves.easeOut,
+                secondCurve: Curves.easeOut,
+              ),
+              joinCodeFormField(),
+            ],
+          ),
         );
       },
     );
   }
 
-  SizedBox _startOnlineGame() {
-    TextEditingController _textController = TextEditingController();
+  Container _startOnlineGame() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 25),
+      child: ElevatedButton(
+        onPressed: () {
+          context.read<MultiplayerBloc>().add(GenerateCode());
+        },
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size.fromHeight(32.5),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+          primary: GobbleColors.black,
+          onPrimary: GobbleColors.textLight,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+        ),
+        child:
+            context.read<MultiplayerBloc>().state is LoadingGeneratedCodeState
+                ? const SpinKitThreeBounce(
+                    color: GobbleColors.background,
+                    size: 20,
+                  )
+                : const Text("Start a new game"),
+      ),
+    );
+  }
 
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.width,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+  Column _generateOnlineCode(String code) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 25),
+          height: 40.5,
+          child: Container(
+            decoration: BoxDecoration(
+              color: GobbleColors.background,
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(
+                color: GobbleColors.black,
+                width: 1,
+              ),
+            ),
+            child: Center(
+              child: SelectableText(
+                code,
+                style: const TextStyle(
+                  color: GobbleColors.black,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 22.5,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.only(left: 12.0, bottom: 10),
+          child: Text(
+            "Share this code with the other player",
+            style: TextStyle(
+              color: GobbleColors.textDark,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
           children: [
-            Container(
-              margin: const EdgeInsets.only(bottom: 25),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.35,
               child: ElevatedButton(
-                onPressed: () {
-                  context.read<MultiplayerBloc>().add(GenerateCode());
-                },
+                onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(32.5),
                   textStyle: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                   primary: GobbleColors.black,
                   onPrimary: GobbleColors.textLight,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(50),
+                        bottomLeft: Radius.circular(50)),
                   ),
                 ),
-                child: const Text("Start a new game"),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(left: 12.0, bottom: 10),
-              child: Text(
-                "Do you have the game code?",
-                style: TextStyle(
-                  color: GobbleColors.textDark,
-                  fontWeight: FontWeight.w600,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(
+                      Icons.share,
+                      size: 18,
+                    ),
+                    SizedBox(
+                      width: 4,
+                    ),
+                    Text("Share")
+                  ],
                 ),
               ),
             ),
             SizedBox(
-              height: 40.5,
-              child: TextFormField(
-                controller: _textController,
-                keyboardType: TextInputType.number,
-                cursorColor: GobbleColors.black,
-                decoration: InputDecoration(
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      context
-                          .read<MultiplayerBloc>()
-                          .add(JoinUsingCode(code: _textController.text));
-                    },
-                    icon: const Icon(
-                      Icons.send_rounded,
-                      color: GobbleColors.black,
-                      size: 20,
-                    ),
-                  ),
-                  hintStyle: const TextStyle(
+              width: MediaQuery.of(context).size.width * 0.35,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: Color(0xFFb1b1b1),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 0.0, horizontal: 10.0),
-                  hintText: 'Enter the code',
-                  fillColor: Colors.white,
-                  filled: true,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide:
-                        const BorderSide(color: GobbleColors.black, width: 1.0),
+                  primary: GobbleColors.background,
+                  onPrimary: GobbleColors.textDark,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(50),
+                        bottomRight: Radius.circular(50)),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide:
-                        const BorderSide(color: GobbleColors.black, width: 1.0),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide: const BorderSide(color: Colors.red, width: 1.0),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide: const BorderSide(color: Colors.red, width: 1.0),
-                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(
+                      Icons.copy_rounded,
+                      size: 18,
+                    ),
+                    SizedBox(
+                      width: 4,
+                    ),
+                    Text("Copy")
+                  ],
                 ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  SizedBox _generateOnlineCode(String code) {
-    TextEditingController _textController = TextEditingController();
-
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.width,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(bottom: 25),
-              height: 40.5,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: GobbleColors.background,
-                  borderRadius: BorderRadius.circular(50),
-                  border: Border.all(
-                    color: GobbleColors.black,
-                    width: 1,
-                  ),
-                ),
-                child: Center(
-                  child: SelectableText(
-                    code,
-                    style: const TextStyle(
-                      color: GobbleColors.black,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 22.5,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(left: 12.0),
-              child: Text(
-                "Do you have the game code?",
-                style: TextStyle(
-                  color: GobbleColors.textDark,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.35,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      primary: GobbleColors.black,
-                      onPrimary: GobbleColors.textLight,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(50),
-                            bottomLeft: Radius.circular(50)),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(
-                          Icons.share,
-                          size: 18,
-                        ),
-                        SizedBox(
-                          width: 4,
-                        ),
-                        Text("Share")
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.35,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      textStyle: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      primary: GobbleColors.background,
-                      onPrimary: GobbleColors.textDark,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(50),
-                            bottomRight: Radius.circular(50)),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(
-                          Icons.copy_rounded,
-                          size: 18,
-                        ),
-                        SizedBox(
-                          width: 4,
-                        ),
-                        Text("Copy")
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              margin: const EdgeInsets.only(top: 25),
-              padding: const EdgeInsets.only(left: 12.0, bottom: 10),
-              child: const Text(
-                "Do you have the game code?",
-                style: TextStyle(
-                  color: GobbleColors.textDark,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 40.5,
-              child: TextFormField(
-                controller: _textController,
-                keyboardType: TextInputType.number,
-                cursorColor: GobbleColors.black,
-                decoration: InputDecoration(
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      context
-                          .read<MultiplayerBloc>()
-                          .add(JoinUsingCode(code: _textController.text));
-                    },
-                    icon: const Icon(
-                      Icons.send_rounded,
-                      color: GobbleColors.black,
-                      size: 20,
-                    ),
-                  ),
-                  hintStyle: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: Color(0xFFb1b1b1),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 0.0, horizontal: 10.0),
-                  hintText: 'Enter the code',
-                  fillColor: Colors.white,
-                  filled: true,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide:
-                        const BorderSide(color: GobbleColors.black, width: 1.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide:
-                        const BorderSide(color: GobbleColors.black, width: 1.0),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide: const BorderSide(color: Colors.red, width: 1.0),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide: const BorderSide(color: Colors.red, width: 1.0),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+        const SizedBox(
+          height: 25,
+        )
+      ],
     );
   }
 
@@ -550,38 +480,54 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
     );
   }
 
-  Container _startButton(BuildContext context, bool isOffline) {
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.1,
-        // vertical: MediaQuery.of(context).size.width * 0.1,
-      ),
-      child: Align(
-        alignment: Alignment.center,
-        child: ElevatedButton(
-          onPressed: () {
-            _switcherController.forward();
-            // START GAME PRESSED
-            context
-                .read<PuzzleBloc>()
-                // TODO: DO SOMETHING
-                .add(LoadSinglePuzzle());
-          },
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size.fromHeight(37.5),
-            textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-            primary: GobbleColors.black,
-            onPrimary: GobbleColors.textLight,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50),
+  BlocBuilder _startButton(BuildContext context, bool isOffline) {
+    return BlocBuilder<MultiplayerBloc, MultiplayerState>(
+      builder: (context, state) {
+        return Container(
+          margin: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.1,
+            // vertical: MediaQuery.of(context).size.width * 0.1,
+          ),
+          child: Align(
+            alignment: Alignment.center,
+            child: ElevatedButton(
+              onPressed: () {
+                // START GAME PRESSED
+                if (isOffline) {
+                  _switcherController.forward();
+                  context.read<PuzzleBloc>().add(LoadSinglePuzzle());
+                } else {
+                  if (isValid(_textController.text) == null) {
+                    context
+                        .read<MultiplayerBloc>()
+                        .add(JoinUsingCode(code: _textController.text));
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(37.5),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                primary: GobbleColors.black,
+                onPrimary: GobbleColors.textLight,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+              ),
+              child: isOffline
+                  ? const Text("Start")
+                  : state is LoadingState
+                      ? const SpinKitThreeBounce(
+                          color: GobbleColors.background,
+                          size: 20,
+                        )
+                      : const Text("Start"),
             ),
           ),
-          child: const Text("Start"),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -613,5 +559,80 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         ),
       ],
     );
+  }
+
+  Column joinCodeFormField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 12.0, bottom: 10),
+          child: Text(
+            "Do you have the game code?",
+            style: TextStyle(
+              color: GobbleColors.textDark,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        BlocBuilder<MultiplayerBloc, MultiplayerState>(
+          buildWhen: (previous, current) =>
+              current is LoadingState || current is InvalidCode,
+          builder: (context, state) {
+            return TextFormField(
+              controller: _textController,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              keyboardType: TextInputType.number,
+              cursorColor: GobbleColors.black,
+              validator: (_) {
+                if (state is InvalidCode) {
+                  return 'This code is invalid';
+                }
+                return isValid(_textController.text);
+              },
+              decoration: InputDecoration(
+                hintStyle: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: Color(0xFFb1b1b1),
+                ),
+                isDense: true,
+                contentPadding: const EdgeInsets.all(10),
+                hintText: 'Enter the code',
+                fillColor: Colors.white,
+                filled: true,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(50),
+                  borderSide:
+                      const BorderSide(color: GobbleColors.black, width: 1.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(50),
+                  borderSide:
+                      const BorderSide(color: GobbleColors.black, width: 1.0),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(50),
+                  borderSide: const BorderSide(color: Colors.red, width: 1.0),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(50),
+                  borderSide: const BorderSide(color: Colors.red, width: 1.0),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  String? isValid(String value) {
+    if (value.isEmpty) {
+      return null;
+    } else if (!reg.hasMatch(value)) {
+      return 'Enter a valid code';
+    }
+    return null;
   }
 }

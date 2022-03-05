@@ -41,6 +41,8 @@ class LoadingState extends MultiplayerState {}
 
 class WaitingForSecondPlayer extends MultiplayerState {}
 
+class WaitingForFirstPlayer extends MultiplayerState {}
+
 class LoadMultiBlocPuzzle extends MultiplayerState {
   final Player player;
   final Puzzle puzzle;
@@ -55,3 +57,7 @@ class LoadMultiBlocPuzzle extends MultiplayerState {
   @override
   List<Object> get props => [player, puzzle, code];
 }
+
+class OnGameCancelled extends MultiplayerState {}
+
+class LoadingGeneratedCodeState extends MultiplayerState {}

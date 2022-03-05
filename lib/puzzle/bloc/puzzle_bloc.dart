@@ -49,6 +49,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   void _onLoadMulti(LoadMultiPuzzle event, Emitter<PuzzleState> emit) async {
     Puzzle puz = event.puzzle;
 
+    if (event.player == Player.one) {
+      await FirebaseFirestore.instance
+          .collection('Rooms')
+          .doc(event.code)
+          .update({'started': true});
+    }
+
     await emit.forEach(
       FirebaseFirestore.instance
           .collection("Rooms")
