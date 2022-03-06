@@ -62,8 +62,11 @@ class _PuzzleViewState extends State<PuzzleView> {
             width: 25,
             height: 25,
             decoration: const BoxDecoration(
-                color: GobbleColors.black,
-                borderRadius: BorderRadius.all(Radius.circular(50))),
+              color: GobbleColors.black,
+              borderRadius: BorderRadius.all(
+                Radius.circular(50),
+              ),
+            ),
           ),
           const SizedBox(
             width: 10,

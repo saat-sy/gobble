@@ -1,3 +1,4 @@
+import 'dart:html';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -14,12 +15,12 @@ class PuzzleBoard extends StatefulWidget {
   final double marginForTab;
   final Puzzle puzzle;
 
-  const PuzzleBoard(
-      {this.tabHeight = 0,
-      this.marginForTab = 0,
-      required this.puzzle,
-      Key? key})
-      : super(key: key);
+  const PuzzleBoard({
+    this.tabHeight = 0,
+    this.marginForTab = 0,
+    required this.puzzle,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<PuzzleBoard> createState() => _PuzzleBoardState();
@@ -51,7 +52,7 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
   Widget build(BuildContext context) {
     sideOfBoard = MediaQuery.of(context).size.width;
 
-    sideOfPiece = ((sideOfBoard * 0.9) / 5.0) - 8;
+    sideOfPiece = ((sideOfBoard * 0.9) / 5.0) - (8);
 
     return Center(
       child: SizedBox(
@@ -60,7 +61,7 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
         child: GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
-          itemCount: 25,
+          itemCount: context.read<PuzzleBloc>().state.puzzle.pieces.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 5,
           ),

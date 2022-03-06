@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:gobble/colors/colors.dart';
 import 'package:gobble/models/puzzle.dart';
 import 'package:gobble/multiplayer/multiplayer_bloc.dart';
 import 'package:gobble/puzzle/puzzle.dart';
+import 'package:gobble/puzzle/widgets/completed_dialog.dart';
 import 'package:gobble/puzzle/widgets/puzzle_board.dart';
 import 'package:gobble/puzzle/widgets/start_or_not.dart';
 import 'package:gobble/puzzle/widgets/waiting_to_start.dart';
@@ -69,78 +71,132 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // GAME MODE SWITCHER
-        BlocBuilder<PuzzleBloc, PuzzleState>(
-          buildWhen: (previous, current) =>
-              (previous.puzzleType != current.puzzleType) ||
-              (previous.started != current.started),
-          builder: (context, state) {
-            return FadeTransition(
-              opacity: _switcherAnimation,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _switchButton(
-                    title: '1v1 Offline',
-                    context: context,
-                    puzzleType: PuzzleType.offline,
-                  ),
-                  _switchButton(
-                    title: 'Multiplayer',
-                    context: context,
-                    puzzleType: PuzzleType.online,
-                  ),
-                ],
+    return BlocListener<PuzzleBloc, PuzzleState>(
+      listenWhen: (previous, current) => current.completed,
+      listener: (context, state) {
+        BuildContext buildContext = context;
+
+        Player winner;
+        if (state.noOfType1 == 0) {
+          winner = Player.two;
+        } else {
+          winner = Player.one;
+        }
+
+        if (state.puzzleType == PuzzleType.offline) {
+          showGeneralDialog(
+            context: context,
+            pageBuilder: (context, _, __) => OfflineWinnerDialog(
+              onBackPress: () {
+                Navigator.pop(context);
+                _switcherController.reverse();
+                buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
+              },
+              playerWon: winner == Player.one ? 'Player 1' : 'Player 2',
+            ),
+          );
+        } else {
+          if (state.player == winner) {
+            showGeneralDialog(
+              context: context,
+              pageBuilder: (context, _, __) => OnlineWinnerDialog(
+                onBackPress: () {
+                  Navigator.pop(context);
+                  _switcherController.reverse();
+                  buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
+                },
               ),
             );
-          },
-        ),
-
-        // GRIDVIEW
-        BlocBuilder<PuzzleBloc, PuzzleState>(
-          buildWhen: (previous, current) => current.started || previous.started,
-          builder: (context, state) {
-            return Stack(
-              children: [
-                PuzzleBoard(
-                  puzzle: state.puzzle,
+          } else {
+            showGeneralDialog(
+              context: context,
+              pageBuilder: (context, _, __) => OnlineLoserDialog(
+                onBackPress: () {
+                  Navigator.pop(context);
+                  _switcherController.reverse();
+                  buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
+                },
+              ),
+            );
+          }
+        }
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // GAME MODE SWITCHER
+          BlocBuilder<PuzzleBloc, PuzzleState>(
+            buildWhen: (previous, current) =>
+                (previous.puzzleType != current.puzzleType) ||
+                (previous.started != current.started),
+            builder: (context, state) {
+              return FadeTransition(
+                opacity: _switcherAnimation,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _switchButton(
+                      title: '1v1 Offline',
+                      context: context,
+                      puzzleType: PuzzleType.offline,
+                    ),
+                    _switchButton(
+                      title: 'Multiplayer',
+                      context: context,
+                      puzzleType: PuzzleType.online,
+                    ),
+                  ],
                 ),
-                state.started ? Container() : _blurBuilder(),
-                state.started
-                    ? Container()
-                    : FadeTransition(
-                        opacity: _codeAnimation,
-                        child: _onlineButtonsBuilder(),
-                      ),
-              ],
-            );
-          },
-        ),
+              );
+            },
+          ),
 
-        // BOTTOM
-        BlocBuilder<PuzzleBloc, PuzzleState>(
-          buildWhen: (previous, current) =>
-              (previous.puzzleType != current.puzzleType) ||
-              (previous.started != current.started),
-          builder: (context, state) {
-            bool isOffline = state.puzzleType == PuzzleType.offline;
-            return AnimatedCrossFade(
-              firstChild: _startButton(context, isOffline),
-              secondChild: _finishButton(context, isOffline),
-              duration: const Duration(milliseconds: 400),
-              crossFadeState: state.started
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              firstCurve: Curves.easeOut,
-              secondCurve: Curves.easeOut,
-            );
-          },
-        )
-      ],
+          // GRIDVIEW
+          BlocBuilder<PuzzleBloc, PuzzleState>(
+            buildWhen: (previous, current) =>
+                current.started ||
+                previous.started ||
+                previous.puzzle.pieces.isEmpty,
+            builder: (context, state) {
+              return Stack(
+                children: [
+                  PuzzleBoard(
+                    puzzle: state.puzzle,
+                  ),
+                  state.started ? Container() : _blurBuilder(),
+                  state.started
+                      ? Container()
+                      : FadeTransition(
+                          opacity: _codeAnimation,
+                          child: _onlineButtonsBuilder(),
+                        ),
+                ],
+              );
+            },
+          ),
+
+          // BOTTOM
+          BlocBuilder<PuzzleBloc, PuzzleState>(
+            buildWhen: (previous, current) =>
+                (previous.puzzleType != current.puzzleType) ||
+                (previous.started != current.started),
+            builder: (context, state) {
+              bool isOffline = state.puzzleType == PuzzleType.offline;
+              return AnimatedCrossFade(
+                firstChild: _startButton(context, isOffline),
+                secondChild: _finishButton(context, isOffline),
+                duration: const Duration(milliseconds: 400),
+                crossFadeState: state.started
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                firstCurve: Curves.easeOut,
+                secondCurve: Curves.easeOut,
+              );
+            },
+          )
+        ],
+      ),
     );
   }
 
@@ -411,7 +467,9 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         return ClipRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(
-                sigmaX: _blurAnimation.value, sigmaY: _blurAnimation.value),
+              sigmaX: max(0.001, _blurAnimation.value),
+              sigmaY: max(0.001, _blurAnimation.value),
+            ),
             child: Container(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.width,

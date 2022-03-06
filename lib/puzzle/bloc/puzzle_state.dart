@@ -11,6 +11,9 @@ class PuzzleState extends Equatable {
   final Player currentPlayer;
   final String code;
   final Player player;
+  final double noOfType1;
+  final double noOfType2;
+  final bool completed;
 
   const PuzzleState({
     this.puzzle = const Puzzle(pieces: <Piece>[]),
@@ -24,6 +27,9 @@ class PuzzleState extends Equatable {
     this.currentPlayer = Player.one,
     this.code = "",
     this.player = Player.one,
+    this.noOfType1 = 13,
+    this.noOfType2 = 12,
+    this.completed = false,
   });
 
   PuzzleState copyWith({
@@ -36,17 +42,24 @@ class PuzzleState extends Equatable {
     Player? currentPlayer,
     Player? player,
     String? code,
+    double? noOfType1,
+    double? noOfType2,
+    bool? completed,
   }) {
     return PuzzleState(
-        puzzle: puzzle ?? this.puzzle,
-        started: started ?? this.started,
-        puzzleType: puzzleType ?? this.puzzleType,
-        pieceType: pieceType ?? this.pieceType,
-        lastMovedPiece: lastMovedPiece ?? this.lastMovedPiece,
-        first: first ?? this.first,
-        currentPlayer: currentPlayer ?? this.currentPlayer,
-        player: player ?? this.player,
-        code: code ?? this.code);
+      puzzle: puzzle ?? this.puzzle,
+      started: started ?? this.started,
+      puzzleType: puzzleType ?? this.puzzleType,
+      pieceType: pieceType ?? this.pieceType,
+      lastMovedPiece: lastMovedPiece ?? this.lastMovedPiece,
+      first: first ?? this.first,
+      currentPlayer: currentPlayer ?? this.currentPlayer,
+      player: player ?? this.player,
+      code: code ?? this.code,
+      noOfType1: noOfType1 ?? this.noOfType1,
+      noOfType2: noOfType2 ?? this.noOfType2,
+      completed: completed ?? this.completed,
+    );
   }
 
   @override
@@ -59,6 +72,9 @@ class PuzzleState extends Equatable {
         first,
         currentPlayer,
         code,
-        player
+        player,
+        noOfType1,
+        noOfType2,
+        completed
       ];
 }

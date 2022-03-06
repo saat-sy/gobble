@@ -25,11 +25,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   void _onLoadEmpty(LoadEmptyPuzzle event, Emitter<PuzzleState> emit) {
+    print('yoyo');
     emit(
       PuzzleState(
-          puzzle: PuzzleFunctions.generateEmptyPuzzle(),
-          started: false,
-          puzzleType: PuzzleType.offline),
+        puzzle: PuzzleFunctions.generateEmptyPuzzle(),
+        started: false,
+        puzzleType: PuzzleType.offline,
+      ),
     );
   }
 
@@ -189,6 +191,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       direction: MyDismissDirection.none,
     );
 
+    double newNoOfType1 = state.noOfType1, newNoOfType2 = state.noOfType2;
+
     if (event.toPiece.isBlank) {
       newToPiece = Piece(
           position: event.toPiece.position,
@@ -197,6 +201,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           direction: PuzzleFunctions.getDirectionOfPiece(
               event.toPiece.position.x, event.toPiece.position.y));
     } else {
+      if (event.toPiece.pieceType == PieceType.type1) {
+        newNoOfType1 -= 1;
+      } else {
+        newNoOfType2 -= 1;
+      }
       newToPiece = Piece(
         position: event.toPiece.position,
         value: event.fromPiece.pieceType == event.toPiece.pieceType
@@ -229,6 +238,14 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           player: state.player);
     }
 
+    if (newNoOfType1 == 0 || newNoOfType2 == 0) {
+      emit(
+        state.copyWith(
+          completed: true,
+        ),
+      );
+    }
+
     emit(
       state.copyWith(
         puzzle: newPuzzle,
@@ -236,6 +253,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         lastMovedPiece: newToPiece,
         first: false,
         currentPlayer: newCurrentPlayer,
+        noOfType1: newNoOfType1,
+        noOfType2: newNoOfType2,
       ),
     );
   }
