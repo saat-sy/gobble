@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gobble/colors/colors.dart';
 
 class StartOrNotDialog extends StatelessWidget {
-  final Function yesPressed;
-  final Function noPressed;
+  final VoidCallback yesPressed;
+  final VoidCallback noPressed;
 
   const StartOrNotDialog({
     Key? key,
@@ -48,7 +48,7 @@ class StartOrNotDialog extends StatelessWidget {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => noPressed,
+                  onPressed: noPressed,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(37.5),
                     primary: GobbleColors.background,
@@ -75,7 +75,7 @@ class StartOrNotDialog extends StatelessWidget {
               ),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => yesPressed,
+                  onPressed: yesPressed,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(37.5),
                     primary: GobbleColors.black,

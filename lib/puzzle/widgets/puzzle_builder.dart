@@ -22,10 +22,6 @@ class PuzzleBuilder extends StatefulWidget {
 
 class _PuzzleBuilderState extends State<PuzzleBuilder>
     with TickerProviderStateMixin {
-  // GAME SWITCHER
-  late AnimationController _switcherController;
-  late Animation<double> _switcherAnimation;
-
   late AnimationController _blurController;
   late Animation<double> _blurAnimation;
 
@@ -38,13 +34,6 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
 
   @override
   void initState() {
-    // FOR SWITCHER
-    _switcherController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 400));
-
-    _switcherAnimation =
-        Tween(begin: 1.0, end: 0.0).animate(_switcherController);
-
     // FOR BLUR
     _blurController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 200));
@@ -62,7 +51,6 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
 
   @override
   void dispose() {
-    _switcherController.dispose();
     _blurController.dispose();
     _codeController.dispose();
     _textController.dispose();
@@ -89,7 +77,6 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
             pageBuilder: (context, _, __) => OfflineWinnerDialog(
               onBackPress: () {
                 Navigator.pop(context);
-                _switcherController.reverse();
                 buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
               },
               playerWon: winner == Player.one ? 'Player 1' : 'Player 2',
@@ -102,7 +89,6 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
               pageBuilder: (context, _, __) => OnlineWinnerDialog(
                 onBackPress: () {
                   Navigator.pop(context);
-                  _switcherController.reverse();
                   buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
                 },
               ),
@@ -113,7 +99,6 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
               pageBuilder: (context, _, __) => OnlineLoserDialog(
                 onBackPress: () {
                   Navigator.pop(context);
-                  _switcherController.reverse();
                   buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
                 },
               ),
@@ -129,11 +114,15 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
           BlocBuilder<PuzzleBloc, PuzzleState>(
             buildWhen: (previous, current) =>
                 (previous.puzzleType != current.puzzleType) ||
-                (previous.started != current.started),
+                (previous.started != current.started) ||
+                (previous.currentPlayer != current.currentPlayer),
             builder: (context, state) {
-              return FadeTransition(
-                opacity: _switcherAnimation,
-                child: Row(
+              return AnimatedCrossFade(
+                crossFadeState: state.started
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 200),
+                firstChild: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _switchButton(
@@ -146,6 +135,19 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                       context: context,
                       puzzleType: PuzzleType.online,
                     ),
+                  ],
+                ),
+                secondChild: Row(
+                  mainAxisAlignment: state.puzzleType == PuzzleType.online
+                      ? MainAxisAlignment.spaceEvenly
+                      : MainAxisAlignment.center,
+                  children: [
+                    // CURRENT PLAYER
+                    getCurrentPlayerWidget(state),
+                    // PLAYER
+                    state.puzzleType == PuzzleType.online
+                        ? getPlayerWidget(state)
+                        : Container()
                   ],
                 ),
               );
@@ -200,6 +202,60 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
     );
   }
 
+  Row getPlayerWidget(PuzzleState state) {
+    return Row(
+      children: [
+        const Text('You are '),
+        Container(
+          margin: const EdgeInsets.all(4),
+          height: 25,
+          width: 25,
+          decoration: BoxDecoration(
+            color: state.player == Player.one
+                ? GobbleColors.background
+                : GobbleColors.black,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                spreadRadius: 0,
+                blurRadius: 3,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Row getCurrentPlayerWidget(PuzzleState state) {
+    return Row(
+      children: [
+        Container(
+          margin: const EdgeInsets.all(4),
+          height: 25,
+          width: 25,
+          decoration: BoxDecoration(
+            color: state.currentPlayer == Player.one
+                ? GobbleColors.background
+                : GobbleColors.black,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                spreadRadius: 0,
+                blurRadius: 3,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+        ),
+        const Text('\'s turn')
+      ],
+    );
+  }
+
   BlocConsumer _onlineButtonsBuilder() {
     return BlocConsumer<MultiplayerBloc, MultiplayerState>(
       listener: ((context, state) {
@@ -212,7 +268,6 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
               pageBuilder: (context, __, ___) {
                 return StartOrNotDialog(
                   yesPressed: () {
-                    _switcherController.forward();
                     buildContext.read<PuzzleBloc>().add(
                           LoadMultiPuzzle(
                             player: state.player,
@@ -552,7 +607,6 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
               onPressed: () {
                 // START GAME PRESSED
                 if (isOffline) {
-                  _switcherController.forward();
                   context.read<PuzzleBloc>().add(LoadSinglePuzzle());
                 } else {
                   if (isValid(_textController.text) == null) {
@@ -607,7 +661,6 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         ),
         IconButton(
           onPressed: () {
-            _switcherController.reverse();
             context.read<PuzzleBloc>().add(LoadEmptyPuzzle());
           },
           icon: const Icon(

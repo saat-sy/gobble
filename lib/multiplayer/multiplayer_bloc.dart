@@ -23,19 +23,23 @@ class MultiplayerBloc extends Bloc<MultiplayerEvent, MultiplayerState> {
   CollectionReference rooms = FirebaseFirestore.instance.collection("Rooms");
 
   void _init(MultiplayerInitEvent event, Emitter<MultiplayerState> emit) async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? code = prefs.getString(GobbleStrings.code);
+    // final prefs = await SharedPreferences.getInstance();
+    // final String? code = prefs.getString(GobbleStrings.code);
 
-    if (code != null) {
-      emit(InitMultiPlayerState(
-        isCodeAvailable: true,
-        code: code,
-      ));
-    } else {
-      emit(const InitMultiPlayerState(
-        isCodeAvailable: false,
-      ));
-    }
+    // if (code != null) {
+    //   emit(InitMultiPlayerState(
+    //     isCodeAvailable: true,
+    //     code: code,
+    //   ));
+    // } else {
+    //   emit(const InitMultiPlayerState(
+    //     isCodeAvailable: false,
+    //   ));
+    // }
+
+    emit(const InitMultiPlayerState(
+      isCodeAvailable: false,
+    ));
   }
 
   void _generateCode(GenerateCode event, Emitter<MultiplayerState> emit) async {

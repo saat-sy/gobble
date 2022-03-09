@@ -25,7 +25,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   void _onLoadEmpty(LoadEmptyPuzzle event, Emitter<PuzzleState> emit) {
-    print('yoyo');
     emit(
       PuzzleState(
         puzzle: PuzzleFunctions.generateEmptyPuzzle(),
@@ -51,11 +50,14 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   void _onLoadMulti(LoadMultiPuzzle event, Emitter<PuzzleState> emit) async {
     Puzzle puz = event.puzzle;
 
+    print('hello world');
+
     if (event.player == Player.one) {
       await FirebaseFirestore.instance
           .collection('Rooms')
           .doc(event.code)
           .update({'started': true});
+      print('yessssssssssssssssssssssssss');
     }
 
     await emit.forEach(
