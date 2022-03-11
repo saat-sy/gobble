@@ -14,8 +14,8 @@ class WaitingToStartDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SpinKitThreeBounce(
-            color: GobbleColors.black,
+          SpinKitThreeBounce(
+            color: Theme.of(context).primaryColorDark,
             size: 35,
           ),
           Container(

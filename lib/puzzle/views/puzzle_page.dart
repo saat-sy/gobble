@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gobble/colors/colors.dart';
 import 'package:gobble/multiplayer/multiplayer_bloc.dart';
 import 'package:gobble/puzzle/bloc/puzzle_bloc.dart';
 import 'package:gobble/puzzle/widgets/puzzle_builder.dart';
+import 'package:gobble/puzzle/widgets/settings_bottom_modal.dart';
 
 class PuzzlePage extends StatefulWidget {
   const PuzzlePage({Key? key}) : super(key: key);
@@ -46,7 +46,7 @@ class _PuzzleViewState extends State<PuzzleView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GobbleColors.background,
+      backgroundColor: Theme.of(context).backgroundColor,
       appBar: getAppBar(),
       body: const PuzzleBuilder(),
     );
@@ -61,9 +61,9 @@ class _PuzzleViewState extends State<PuzzleView> {
           Container(
             width: 25,
             height: 25,
-            decoration: const BoxDecoration(
-              color: GobbleColors.black,
-              borderRadius: BorderRadius.all(
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor,
+              borderRadius: const BorderRadius.all(
                 Radius.circular(50),
               ),
             ),
@@ -71,17 +71,36 @@ class _PuzzleViewState extends State<PuzzleView> {
           const SizedBox(
             width: 10,
           ),
-          const Text("Gobble", style: TextStyle(color: GobbleColors.black))
+          Text(
+            "Gobble",
+            style: TextStyle(
+              color: Theme.of(context).primaryColorLight,
+            ),
+          )
         ],
       ),
-      backgroundColor: GobbleColors.background,
+      backgroundColor: Theme.of(context).backgroundColor,
       centerTitle: true,
       actions: [
         IconButton(
-          onPressed: () {},
-          icon: const Icon(
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Theme.of(context).dialogBackgroundColor,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20.0),
+                  topRight: Radius.circular(20.0),
+                ),
+              ),
+              builder: (context) {
+                return const SettingsBottomModal();
+              },
+            );
+          },
+          icon: Icon(
             Icons.settings_outlined,
-            color: GobbleColors.black,
+            color: Theme.of(context).primaryColorLight,
           ),
         )
       ],

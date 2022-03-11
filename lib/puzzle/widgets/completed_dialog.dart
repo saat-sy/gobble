@@ -133,7 +133,7 @@ class _BackButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onBackPress,
       style: ElevatedButton.styleFrom(
-        primary: GobbleColors.black,
+        primary: Theme.of(context).primaryColorDark,
         onPrimary: GobbleColors.textLight,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(50),

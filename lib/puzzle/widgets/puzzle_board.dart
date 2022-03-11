@@ -110,7 +110,7 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
         height: sideOfPiece,
         width: sideOfPiece,
         decoration: BoxDecoration(
-          color: GobbleColors.background,
+          color: Theme.of(context).primaryColorLight,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -128,7 +128,7 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
         height: sideOfPiece,
         width: sideOfPiece,
         decoration: BoxDecoration(
-          color: GobbleColors.background,
+          color: Theme.of(context).primaryColorLight,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(

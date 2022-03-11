@@ -51,7 +51,7 @@ class StartOrNotDialog extends StatelessWidget {
                   onPressed: noPressed,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(37.5),
-                    primary: GobbleColors.background,
+                    primary: Theme.of(context).primaryColorLight,
                     onPrimary: GobbleColors.textDark,
                     shape: RoundedRectangleBorder(
                         borderRadius: const BorderRadius.only(
@@ -78,7 +78,7 @@ class StartOrNotDialog extends StatelessWidget {
                   onPressed: yesPressed,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(37.5),
-                    primary: GobbleColors.black,
+                    primary: Theme.of(context).primaryColorDark,
                     onPrimary: GobbleColors.textLight,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(

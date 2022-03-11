@@ -1,5 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gobble/themes/bloc/theme_bloc.dart';
 import 'puzzle/puzzle.dart';
 import 'firebase_options.dart';
 
@@ -16,11 +18,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return BlocProvider(
+      create: (context) => ThemeBloc()..add(ThemeInitial()),
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, state) {
+          return MaterialApp(
+            theme: state.theme,
+            home: const PuzzlePage(),
+          );
+        },
       ),
-      home: const PuzzlePage(),
     );
   }
 }
