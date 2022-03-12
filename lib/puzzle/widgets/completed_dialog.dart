@@ -1,6 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+class DrawDialog extends StatelessWidget {
+  final VoidCallback onBackPress;
+
+  const DrawDialog({
+    required this.onBackPress,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(25),
+      ),
+      contentPadding: EdgeInsets.zero,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            children: const [
+              _ClipPathForDialog(draw: true),
+              _ImageForDialog(draw: true),
+            ],
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          const _MainHeading(text: 'Draw'),
+          const SizedBox(height: 12.5),
+          const _SubHeading(text: 'The game drew'),
+          const SizedBox(height: 12.5),
+          _BackButton(
+            onBackPress: onBackPress,
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+}
+
 class OfflineWinnerDialog extends StatelessWidget {
   final VoidCallback onBackPress;
   final String playerWon;
@@ -193,9 +234,11 @@ class _MainHeading extends StatelessWidget {
 
 class _ImageForDialog extends StatelessWidget {
   final bool won;
+  final bool draw;
   const _ImageForDialog({
     Key? key,
-    required this.won,
+    this.won = true,
+    this.draw = false,
   }) : super(key: key);
 
   @override
@@ -204,7 +247,11 @@ class _ImageForDialog extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: 30.0),
         child: Image.asset(
-          won ? 'assets/winner.png' : 'assets/loser.png',
+          draw
+              ? 'assets/draw.png'
+              : won
+                  ? 'assets/winner.png'
+                  : 'assets/loser.png',
           height: won ? 125 : 100,
         ),
       ),
@@ -214,9 +261,11 @@ class _ImageForDialog extends StatelessWidget {
 
 class _ClipPathForDialog extends StatelessWidget {
   final bool won;
+  final bool draw;
   const _ClipPathForDialog({
     Key? key,
-    required this.won,
+    this.won = true,
+    this.draw = false,
   }) : super(key: key);
 
   @override
@@ -225,7 +274,11 @@ class _ClipPathForDialog extends StatelessWidget {
       clipper: RoundClipper(),
       child: Container(
         decoration: BoxDecoration(
-          color: won ? const Color(0xFFC3F8DA) : const Color(0xFFF7746A),
+          color: draw
+              ? Colors.orangeAccent.shade100
+              : won
+                  ? const Color(0xFFC3F8DA)
+                  : const Color(0xFFF7746A),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(25),
             topRight: Radius.circular(25),

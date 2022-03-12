@@ -63,50 +63,62 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
   @override
   Widget build(BuildContext context) {
     return BlocListener<PuzzleBloc, PuzzleState>(
-      listenWhen: (previous, current) => current.completed,
+      listenWhen: (previous, current) => current.completed || current.draw,
       listener: (context, state) {
         BuildContext buildContext = context;
 
-        Player winner;
-        if (state.noOfType1 == 0) {
-          winner = Player.two;
-        } else {
-          winner = Player.one;
-        }
+        if (state.completed) {
+          Player winner;
+          if (state.noOfType1 == 0) {
+            winner = Player.two;
+          } else {
+            winner = Player.one;
+          }
 
-        if (state.puzzleType == PuzzleType.offline) {
+          if (state.puzzleType == PuzzleType.offline) {
+            showGeneralDialog(
+              context: context,
+              pageBuilder: (context, _, __) => OfflineWinnerDialog(
+                onBackPress: () {
+                  Navigator.pop(context);
+                  buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
+                },
+                playerWon: winner == Player.one ? 'Player 1' : 'Player 2',
+              ),
+            );
+          } else {
+            if (state.player == winner) {
+              showGeneralDialog(
+                context: context,
+                pageBuilder: (context, _, __) => OnlineWinnerDialog(
+                  onBackPress: () {
+                    Navigator.pop(context);
+                    buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
+                  },
+                ),
+              );
+            } else {
+              showGeneralDialog(
+                context: context,
+                pageBuilder: (context, _, __) => OnlineLoserDialog(
+                  onBackPress: () {
+                    Navigator.pop(context);
+                    buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
+                  },
+                ),
+              );
+            }
+          }
+        } else {
           showGeneralDialog(
             context: context,
-            pageBuilder: (context, _, __) => OfflineWinnerDialog(
+            pageBuilder: (context, _, __) => DrawDialog(
               onBackPress: () {
                 Navigator.pop(context);
                 buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
               },
-              playerWon: winner == Player.one ? 'Player 1' : 'Player 2',
             ),
           );
-        } else {
-          if (state.player == winner) {
-            showGeneralDialog(
-              context: context,
-              pageBuilder: (context, _, __) => OnlineWinnerDialog(
-                onBackPress: () {
-                  Navigator.pop(context);
-                  buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
-                },
-              ),
-            );
-          } else {
-            showGeneralDialog(
-              context: context,
-              pageBuilder: (context, _, __) => OnlineLoserDialog(
-                onBackPress: () {
-                  Navigator.pop(context);
-                  buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
-                },
-              ),
-            );
-          }
         }
       },
       child: Column(

@@ -115,6 +115,7 @@ class MultiplayerBloc extends Bloc<MultiplayerEvent, MultiplayerState> {
         'currentPlayer': 'one',
         'started': false,
         'rejected': false,
+        'draw': false,
       }).then(
         (value) async {
           await emit.forEach(

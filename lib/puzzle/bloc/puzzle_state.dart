@@ -14,6 +14,7 @@ class PuzzleState extends Equatable {
   final double noOfType1;
   final double noOfType2;
   final bool completed;
+  final bool draw;
 
   const PuzzleState({
     this.puzzle = const Puzzle(pieces: <Piece>[]),
@@ -30,6 +31,7 @@ class PuzzleState extends Equatable {
     this.noOfType1 = 13,
     this.noOfType2 = 12,
     this.completed = false,
+    this.draw = false,
   });
 
   PuzzleState copyWith({
@@ -45,6 +47,7 @@ class PuzzleState extends Equatable {
     double? noOfType1,
     double? noOfType2,
     bool? completed,
+    bool? draw
   }) {
     return PuzzleState(
       puzzle: puzzle ?? this.puzzle,
@@ -59,6 +62,7 @@ class PuzzleState extends Equatable {
       noOfType1: noOfType1 ?? this.noOfType1,
       noOfType2: noOfType2 ?? this.noOfType2,
       completed: completed ?? this.completed,
+      draw: draw ?? this.draw
     );
   }
 
@@ -75,6 +79,7 @@ class PuzzleState extends Equatable {
         player,
         noOfType1,
         noOfType2,
-        completed
+        completed,
+        draw,
       ];
 }

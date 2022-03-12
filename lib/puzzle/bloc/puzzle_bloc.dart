@@ -139,6 +139,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             lastMovedPiece: newToPiece,
             first: false,
             currentPlayer: cPlayer,
+            draw: snapshot.get('draw'),
           );
         }
       },
@@ -244,7 +245,33 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       ),
     );
 
-    if(state.puzzleType == PuzzleType.online) {
+    List<int> values = [];
+    for (Piece piece in newPuzzle.pieces) {
+      if (!piece.isBlank) {
+        values.add(piece.value);
+      }
+    }
+
+    Map<int, int> count = {};
+    for (var i in values) {
+      count[i] = (count[i] ?? 0) + 1;
+    }
+
+    bool draw = true;
+
+    count.forEach((key, value) {
+      if (value != 1) {
+        draw = false;
+      }
+    });
+
+    if (draw) {
+      emit(
+        state.copyWith(draw: true),
+      );
+    }
+
+    if (state.puzzleType == PuzzleType.online) {
       await FirebaseFirestore.instance
           .collection("Rooms")
           .doc(state.code)
@@ -256,6 +283,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           event.toPiece.position.y,
         ],
         'currentPlayer': newCurrentPlayer == Player.one ? "one" : "two",
+        'draw': draw,
       });
     }
   }
