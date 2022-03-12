@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 enum AppTheme {
   blackLight,
@@ -27,6 +28,7 @@ final appThemeData = {
     dialogBackgroundColor: const Color(0xFFFFFFFF),
     cardColor: const Color(0xFF353535),
     errorColor: const Color(0xFFB00020),
+    fontFamily: GoogleFonts.rubik().fontFamily,
   ),
   AppTheme.blackDark: ThemeData(
     brightness: Brightness.dark,
@@ -37,6 +39,7 @@ final appThemeData = {
     dialogBackgroundColor: const Color.fromARGB(255, 47, 47, 47),
     cardColor: const Color.fromARGB(255, 66, 66, 66),
     errorColor: const Color(0xFFCF6679),
+    fontFamily: GoogleFonts.rubik().fontFamily,
   ),
   AppTheme.blueLight: ThemeData(
     brightness: Brightness.light,
@@ -48,6 +51,7 @@ final appThemeData = {
     cardColor: const Color.fromARGB(255, 0, 67, 119),
     errorColor: const Color(0xFFB00020),
     highlightColor: const Color(0xFFBED0DE),
+    fontFamily: GoogleFonts.rubik().fontFamily,
   ),
   AppTheme.blueDark: ThemeData(
     brightness: Brightness.dark,
@@ -58,6 +62,7 @@ final appThemeData = {
     dialogBackgroundColor: const Color.fromARGB(255, 1, 55, 100),
     cardColor: const Color.fromARGB(255, 2, 74, 133),
     errorColor: const Color(0xFFCF6679),
+    fontFamily: GoogleFonts.rubik().fontFamily,
   ),
 };
 
