@@ -427,15 +427,31 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                 width: 1,
               ),
             ),
-            child: Center(
-              child: SelectableText(
-                code,
-                style: TextStyle(
-                  color: Theme.of(context).primaryColorLight,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 22.5,
+            child: Stack(
+              children: [
+                Center(
+                  child: SelectableText(
+                    code,
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColorLight,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 22.5,
+                    ),
+                  ),
                 ),
-              ),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    onPressed: () {
+                      context.read<MultiplayerBloc>().add(GenerateCode());
+                    },
+                    icon: Icon(
+                      Icons.refresh,
+                      color: Theme.of(context).primaryColorLight,
+                    ),
+                  ),
+                )
+              ],
             ),
           ),
         ),
@@ -500,6 +516,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
+                      duration: const Duration(milliseconds: 1000),
                     ),
                   );
                 },
