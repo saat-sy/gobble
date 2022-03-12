@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:gobble/colors/colors.dart';
@@ -12,6 +13,7 @@ import 'package:gobble/puzzle/widgets/completed_dialog.dart';
 import 'package:gobble/puzzle/widgets/puzzle_board.dart';
 import 'package:gobble/puzzle/widgets/start_or_not.dart';
 import 'package:gobble/puzzle/widgets/waiting_to_start.dart';
+import 'package:share_plus/share_plus.dart';
 
 class PuzzleBuilder extends StatefulWidget {
   const PuzzleBuilder({Key? key}) : super(key: key);
@@ -398,7 +400,9 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         child:
             context.read<MultiplayerBloc>().state is LoadingGeneratedCodeState
                 ? SpinKitThreeBounce(
-                    color: Theme.of(context).primaryColorLight,
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? Theme.of(context).primaryColorDark
+                        : Theme.of(context).primaryColorLight,
                     size: 20,
                   )
                 : const Text("Start a new game"),
@@ -416,10 +420,10 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
           height: 40.5,
           child: Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColorLight,
+              color: Theme.of(context).primaryColorDark,
               borderRadius: BorderRadius.circular(50),
               border: Border.all(
-                color: Theme.of(context).primaryColorDark,
+                color: Theme.of(context).primaryColorLight,
                 width: 1,
               ),
             ),
@@ -427,7 +431,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
               child: SelectableText(
                 code,
                 style: TextStyle(
-                  color: Theme.of(context).primaryColorDark,
+                  color: Theme.of(context).primaryColorLight,
                   fontWeight: FontWeight.w600,
                   fontSize: 22.5,
                 ),
@@ -451,7 +455,9 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.35,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () async {
+                  await Share.share(code);
+                },
                 style: ElevatedButton.styleFrom(
                   textStyle: const TextStyle(
                     fontSize: 16,
@@ -483,7 +489,20 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.35,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: code));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text(
+                        'Copied!',
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   textStyle: const TextStyle(
                     fontSize: 15,

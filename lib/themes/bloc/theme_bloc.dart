@@ -9,24 +9,12 @@ part 'theme_event.dart';
 part 'theme_state.dart';
 
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
-  ThemeBloc()
+  ThemeBloc({required int themeIndex})
       : super(
-          ThemeState(theme: appThemeData[AppTheme.blackLight] as ThemeData),
+          ThemeState(theme: appThemeData.entries.elementAt(themeIndex).value),
         ) {
-    on<ThemeInitial>(_themeInitial);
     on<ChangeTheme>(_changeTheme);
     on<ChangeColor>(_changeColor);
-  }
-
-  void _themeInitial(ThemeInitial event, Emitter<ThemeState> emit) async {
-    final prefs = await SharedPreferences.getInstance();
-    int? theme = prefs.getInt(GobbleStrings.theme);
-
-    if (theme != null) {
-      emit(ThemeState(theme: appThemeData[theme] as ThemeData));
-    } else {
-      emit(ThemeState(theme: appThemeData[0] as ThemeData));
-    }
   }
 
   void _changeTheme(ChangeTheme event, Emitter<ThemeState> emit) async {

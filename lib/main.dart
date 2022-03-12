@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gobble/strings/strings.dart';
 import 'package:gobble/themes/bloc/theme_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'puzzle/puzzle.dart';
 import 'firebase_options.dart';
 
@@ -10,16 +12,32 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  runApp(MyApp(prefs: prefs));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final SharedPreferences prefs;
+
+  const MyApp({
+    Key? key,
+    required this.prefs,
+  }) : super(key: key);
+
+  _getThemeIndex() {
+    int? value = prefs.getInt(GobbleStrings.theme);
+    if (value != null) {
+      return value;
+    } else {
+      return 0;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ThemeBloc()..add(ThemeInitial()),
+      create: (context) =>
+          ThemeBloc(themeIndex: _getThemeIndex()),
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
           return MaterialApp(
