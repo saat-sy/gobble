@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class OfflineWinnerDialog extends StatelessWidget {
   final VoidCallback onBackPress;
@@ -143,6 +144,7 @@ class _BackButton extends StatelessWidget {
         onPrimary: Theme.of(context).brightness == Brightness.light
             ? Theme.of(context).primaryColorDark
             : Theme.of(context).primaryColorLight,
+        textStyle: TextStyle(fontFamily: GoogleFonts.rubik().fontFamily),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(50),
         ),

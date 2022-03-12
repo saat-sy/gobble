@@ -50,14 +50,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   void _onLoadMulti(LoadMultiPuzzle event, Emitter<PuzzleState> emit) async {
     Puzzle puz = event.puzzle;
 
-    print('hello world');
-
     if (event.player == Player.one) {
       await FirebaseFirestore.instance
           .collection('Rooms')
           .doc(event.code)
           .update({'started': true});
-      print('yessssssssssssssssssssssssss');
     }
 
     await emit.forEach(
@@ -172,19 +169,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       } else {
         newCurrentPlayer = Player.one;
       }
-
-      await FirebaseFirestore.instance
-          .collection("Rooms")
-          .doc(state.code)
-          .update({
-        'lastUpdatedPiece': [
-          event.fromPiece.position.x,
-          event.fromPiece.position.y,
-          event.toPiece.position.x,
-          event.toPiece.position.y,
-        ],
-        'currentPlayer': newCurrentPlayer == Player.one ? "one" : "two",
-      });
     }
 
     newFromPiece = Piece(
@@ -259,6 +243,21 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         noOfType2: newNoOfType2,
       ),
     );
+
+    if(state.puzzleType == PuzzleType.online) {
+      await FirebaseFirestore.instance
+          .collection("Rooms")
+          .doc(state.code)
+          .update({
+        'lastUpdatedPiece': [
+          event.fromPiece.position.x,
+          event.fromPiece.position.y,
+          event.toPiece.position.x,
+          event.toPiece.position.y,
+        ],
+        'currentPlayer': newCurrentPlayer == Player.one ? "one" : "two",
+      });
+    }
   }
 
   Puzzle _makePieceImmovable(Puzzle puzzle,

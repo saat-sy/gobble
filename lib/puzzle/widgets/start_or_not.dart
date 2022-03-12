@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class StartOrNotDialog extends StatelessWidget {
   final VoidCallback yesPressed;
@@ -52,6 +53,7 @@ class StartOrNotDialog extends StatelessWidget {
                     minimumSize: const Size.fromHeight(37.5),
                     primary: Theme.of(context).primaryColorDark,
                     onPrimary: Theme.of(context).primaryColorLight,
+                    textStyle: TextStyle(fontFamily: GoogleFonts.rubik().fontFamily),
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                         bottomLeft: Radius.circular(23),
@@ -79,6 +81,7 @@ class StartOrNotDialog extends StatelessWidget {
                     onPrimary: Theme.of(context).brightness == Brightness.light
                         ? Theme.of(context).primaryColorDark
                         : Theme.of(context).primaryColorLight,
+                    textStyle: TextStyle(fontFamily: GoogleFonts.rubik().fontFamily),
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                         bottomRight: Radius.circular(23),

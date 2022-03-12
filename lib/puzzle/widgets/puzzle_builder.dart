@@ -13,6 +13,7 @@ import 'package:gobble/puzzle/widgets/puzzle_board.dart';
 import 'package:gobble/puzzle/widgets/restart_or_start.dart';
 import 'package:gobble/puzzle/widgets/start_or_not.dart';
 import 'package:gobble/puzzle/widgets/waiting_to_start.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PuzzleBuilder extends StatefulWidget {
@@ -385,7 +386,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         },
         style: ElevatedButton.styleFrom(
           minimumSize: const Size.fromHeight(32.5),
-          textStyle: const TextStyle(
+          textStyle: GoogleFonts.rubik(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -475,9 +476,9 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                   await Share.share(code);
                 },
                 style: ElevatedButton.styleFrom(
-                  textStyle: const TextStyle(
+                  textStyle: GoogleFonts.rubik(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                   primary: Theme.of(context).primaryColorLight,
                   onPrimary: Theme.of(context).primaryColorDark,
@@ -521,9 +522,9 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  textStyle: const TextStyle(
+                  textStyle: GoogleFonts.rubik(
                     fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                   primary: Theme.of(context).primaryColorDark,
                   onPrimary: Theme.of(context).primaryColorLight,
@@ -625,14 +626,15 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         child: Center(
           child: Text(
             title,
-            style: TextStyle(
+            style: GoogleFonts.rubik(
               // CHANGE PRIMARYDARK AND LIGHT BASED ON BRIGHTNESS
               color: Theme.of(context).brightness == Brightness.light
                   ? active
                       ? Theme.of(context).primaryColorDark
                       : Theme.of(context).primaryColorLight
                   : Theme.of(context).primaryColorLight,
-              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -665,9 +667,9 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(37.5),
-                textStyle: const TextStyle(
+                textStyle: GoogleFonts.rubik(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                 ),
                 primary: Theme.of(context).cardColor,
                 // RETURNS A LIGHT COLOR WHEN IT'S DARK AND VICE VERSA
@@ -682,6 +684,10 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                   ? const Text("Start")
                   : state is LoadingState
                       ? SpinKitThreeBounce(
+                          color:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? Theme.of(context).primaryColorDark
+                                  : Theme.of(context).primaryColorLight,
                           size: 20,
                         )
                       : const Text("Start"),
