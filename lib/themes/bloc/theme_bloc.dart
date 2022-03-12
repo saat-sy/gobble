@@ -20,76 +20,61 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
 
   void _themeInitial(ThemeInitial event, Emitter<ThemeState> emit) async {
     final prefs = await SharedPreferences.getInstance();
-    String? theme = prefs.getString(GobbleStrings.theme);
-    AppTheme finalTheme;
+    int? theme = prefs.getInt(GobbleStrings.theme);
 
     if (theme != null) {
-      theme = theme.split('.')[1];
-      if (theme.startsWith("black")) {
-        if (theme.endsWith("Light")) {
-          finalTheme = AppTheme.blackLight;
-        } else {
-          finalTheme = AppTheme.blackDark;
-        }
-      } else {
-        if (theme.endsWith("Light")) {
-          finalTheme = AppTheme.blueLight;
-        } else {
-          finalTheme = AppTheme.blueDark;
-        }
-      }
-      emit(ThemeState(theme: appThemeData[finalTheme] as ThemeData));
+      emit(ThemeState(theme: appThemeData[theme] as ThemeData));
     } else {
-      emit(ThemeState(theme: appThemeData[AppTheme.blackLight] as ThemeData));
+      emit(ThemeState(theme: appThemeData[0] as ThemeData));
     }
   }
 
   void _changeTheme(ChangeTheme event, Emitter<ThemeState> emit) async {
-    String themeString = "";
+    int themeIndex = 0;
     if (state.theme.primaryColor ==
         appThemeData[AppTheme.blackLight]?.primaryColor) {
       if (event.theme == ThemeInterface.light) {
         emit(ThemeState(theme: appThemeData[AppTheme.blackLight] as ThemeData));
-        themeString = AppTheme.blackLight.toString();
+        themeIndex = 0;
       } else {
         emit(ThemeState(theme: appThemeData[AppTheme.blackDark] as ThemeData));
-        themeString = AppTheme.blackDark.toString();
+        themeIndex = 1;
       }
     } else {
       if (event.theme == ThemeInterface.light) {
         emit(ThemeState(theme: appThemeData[AppTheme.blueLight] as ThemeData));
-        themeString = AppTheme.blueLight.toString();
+        themeIndex = 2;
       } else {
         emit(ThemeState(theme: appThemeData[AppTheme.blueDark] as ThemeData));
-        themeString = AppTheme.blueDark.toString();
+        themeIndex = 3;
       }
     }
 
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString(GobbleStrings.theme, themeString);
+    prefs.setInt(GobbleStrings.theme, themeIndex);
   }
 
   void _changeColor(ChangeColor event, Emitter<ThemeState> emit) async {
-    String themeString = "";
+    int themeString = 0;
     if (state.theme.brightness == Brightness.light) {
       if (event.color == ThemeColor.black) {
         emit(ThemeState(theme: appThemeData[AppTheme.blackLight] as ThemeData));
-        themeString = AppTheme.blackLight.toString();
+        themeString = 0;
       } else {
         emit(ThemeState(theme: appThemeData[AppTheme.blueLight] as ThemeData));
-        themeString = AppTheme.blueLight.toString();
+        themeString = 1;
       }
     } else {
       if (event.color == ThemeColor.black) {
         emit(ThemeState(theme: appThemeData[AppTheme.blackDark] as ThemeData));
-        themeString = AppTheme.blackDark.toString();
+        themeString = 2;
       } else {
         emit(ThemeState(theme: appThemeData[AppTheme.blueDark] as ThemeData));
-        themeString = AppTheme.blueDark.toString();
+        themeString = 3;
       }
     }
 
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString(GobbleStrings.theme, themeString);
+    prefs.setInt(GobbleStrings.theme, themeString);
   }
 }
