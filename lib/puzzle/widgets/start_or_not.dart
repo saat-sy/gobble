@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gobble/colors/colors.dart';
 
 class StartOrNotDialog extends StatelessWidget {
   final VoidCallback yesPressed;

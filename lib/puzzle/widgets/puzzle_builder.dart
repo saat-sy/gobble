@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:gobble/colors/colors.dart';
 import 'package:gobble/models/puzzle.dart';
 import 'package:gobble/multiplayer/multiplayer_bloc.dart';
 import 'package:gobble/puzzle/puzzle.dart';
 import 'package:gobble/puzzle/widgets/completed_dialog.dart';
 import 'package:gobble/puzzle/widgets/puzzle_board.dart';
+import 'package:gobble/puzzle/widgets/restart_or_start.dart';
 import 'package:gobble/puzzle/widgets/start_or_not.dart';
 import 'package:gobble/puzzle/widgets/waiting_to_start.dart';
 import 'package:share_plus/share_plus.dart';
@@ -615,8 +615,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         width: MediaQuery.of(context).size.width * 0.35,
         height: 35,
         decoration: BoxDecoration(
-          color:
-              active ? Theme.of(context).cardColor : GobbleColors.transparent,
+          color: active ? Theme.of(context).cardColor : Colors.transparent,
           borderRadius: BorderRadius.circular(50),
           border: Border.all(
             color: Theme.of(context).cardColor,
@@ -699,10 +698,20 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
       children: [
         IconButton(
           onPressed: () {
-            context
-                .read<PuzzleBloc>()
-                // TODO: DO SOMETHING
-                .add(LoadSinglePuzzle());
+            BuildContext buildContext = context;
+            showGeneralDialog(
+              context: context,
+              pageBuilder: (context, __, ___) {
+                return EndOrRestartDialog(
+                  noPressed: () => Navigator.pop(context),
+                  yesPressed: () {
+                    buildContext.read<PuzzleBloc>().add(LoadSinglePuzzle());
+                    Navigator.pop(context);
+                  },
+                  end: false,
+                );
+              },
+            );
           },
           icon: Icon(
             CupertinoIcons.restart,
@@ -711,7 +720,20 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         ),
         IconButton(
           onPressed: () {
-            context.read<PuzzleBloc>().add(LoadEmptyPuzzle());
+            BuildContext buildContext = context;
+            showGeneralDialog(
+              context: context,
+              pageBuilder: (context, __, ___) {
+                return EndOrRestartDialog(
+                  noPressed: () => Navigator.pop(context),
+                  yesPressed: () {
+                    buildContext.read<PuzzleBloc>().add(LoadEmptyPuzzle());
+                    Navigator.pop(context);
+                  },
+                  end: true,
+                );
+              },
+            );
           },
           icon: Icon(
             CupertinoIcons.check_mark,

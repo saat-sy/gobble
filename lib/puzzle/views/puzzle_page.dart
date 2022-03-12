@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:gobble/multiplayer/multiplayer_bloc.dart';
 import 'package:gobble/puzzle/bloc/puzzle_bloc.dart';
 import 'package:gobble/puzzle/widgets/puzzle_builder.dart';
 import 'package:gobble/puzzle/widgets/settings_bottom_modal.dart';
+import 'package:gobble/themes/app_themes.dart';
 
 class PuzzlePage extends StatefulWidget {
   const PuzzlePage({Key? key}) : super(key: key);
@@ -58,15 +60,17 @@ class _PuzzleViewState extends State<PuzzleView> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 25,
-            height: 25,
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(50),
-              ),
-            ),
+          SvgPicture.asset(
+            Theme.of(context).brightness == Brightness.light
+                ? Theme.of(context).primaryColor ==
+                        appThemeData[AppTheme.blackLight]?.primaryColor
+                    ? "assets/icon/icon-light-black.svg"
+                    : "assets/icon/icon-light-blue.svg"
+                : Theme.of(context).primaryColor ==
+                        appThemeData[AppTheme.blackDark]?.primaryColor
+                    ? "assets/icon/icon-dark-black.svg"
+                    : "assets/icon/icon-dark-blue.svg",
+            height: 30,
           ),
           const SizedBox(
             width: 10,

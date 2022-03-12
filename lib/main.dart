@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gobble/strings/strings.dart';
 import 'package:gobble/themes/bloc/theme_bloc.dart';
@@ -29,15 +30,19 @@ class MyApp extends StatelessWidget {
     if (value != null) {
       return value;
     } else {
-      return 0;
+      var brightness = SchedulerBinding.instance!.window.platformBrightness;
+      if (brightness == Brightness.dark) {
+        return 1;
+      } else {
+        return 0;
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          ThemeBloc(themeIndex: _getThemeIndex()),
+      create: (context) => ThemeBloc(themeIndex: _getThemeIndex()),
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
           return MaterialApp(

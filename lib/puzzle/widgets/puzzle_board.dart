@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gobble/colors/colors.dart';
 import 'package:gobble/dismissible/my_dismissible.dart';
 import 'package:gobble/models/piece.dart';
 import 'package:gobble/models/position.dart';

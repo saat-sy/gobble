@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:gobble/colors/colors.dart';
 
 class WaitingToStartDialog extends StatelessWidget {
   const WaitingToStartDialog({Key? key}) : super(key: key);
