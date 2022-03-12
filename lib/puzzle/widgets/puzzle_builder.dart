@@ -212,8 +212,10 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
           width: 25,
           decoration: BoxDecoration(
             color: state.player == Player.one
-                ? Theme.of(context).primaryColorLight
-                : Theme.of(context).primaryColorDark,
+                ? Theme.of(context).brightness == Brightness.light
+                    ? Theme.of(context).primaryColorDark
+                    : Theme.of(context).dialogBackgroundColor
+                : Theme.of(context).primaryColorLight,
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
@@ -238,8 +240,10 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
           width: 25,
           decoration: BoxDecoration(
             color: state.currentPlayer == Player.one
-                ? Theme.of(context).primaryColorLight
-                : Theme.of(context).primaryColorDark,
+                ? Theme.of(context).brightness == Brightness.light
+                    ? Theme.of(context).primaryColorDark
+                    : Theme.of(context).dialogBackgroundColor
+                : Theme.of(context).primaryColorLight,
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
@@ -383,8 +387,10 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
-          primary: Theme.of(context).buttonColor,
-          onPrimary: GobbleColors.textLight,
+          primary: Theme.of(context).cardColor,
+          onPrimary: Theme.of(context).brightness == Brightness.light
+              ? Theme.of(context).primaryColorDark
+              : Theme.of(context).primaryColorLight,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(50),
           ),
@@ -429,12 +435,12 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
             ),
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.only(left: 12.0, bottom: 10),
+        Padding(
+          padding: const EdgeInsets.only(left: 12.0, bottom: 10),
           child: Text(
             "Share this code with the other player",
             style: TextStyle(
-              color: GobbleColors.textDark,
+              color: Theme.of(context).primaryColorLight,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -451,8 +457,8 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
-                  primary: Theme.of(context).primaryColorDark,
-                  onPrimary: GobbleColors.textLight,
+                  primary: Theme.of(context).primaryColorLight,
+                  onPrimary: Theme.of(context).primaryColorDark,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(50),
@@ -483,8 +489,8 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
-                  primary: Theme.of(context).primaryColorLight,
-                  onPrimary: GobbleColors.textDark,
+                  primary: Theme.of(context).primaryColorDark,
+                  onPrimary: Theme.of(context).primaryColorLight,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
                         topRight: Radius.circular(50),
@@ -573,10 +579,11 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         width: MediaQuery.of(context).size.width * 0.35,
         height: 35,
         decoration: BoxDecoration(
-          color: active ? Theme.of(context).primaryColorDark : GobbleColors.transparent,
+          color:
+              active ? Theme.of(context).cardColor : GobbleColors.transparent,
           borderRadius: BorderRadius.circular(50),
           border: Border.all(
-            color: Theme.of(context).primaryColorDark,
+            color: Theme.of(context).cardColor,
             width: 1,
           ),
         ),
@@ -584,7 +591,12 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
           child: Text(
             title,
             style: TextStyle(
-              color: active ? GobbleColors.textLight : GobbleColors.textDark,
+              // CHANGE PRIMARYDARK AND LIGHT BASED ON BRIGHTNESS
+              color: Theme.of(context).brightness == Brightness.light
+                  ? active
+                      ? Theme.of(context).primaryColorDark
+                      : Theme.of(context).primaryColorLight
+                  : Theme.of(context).primaryColorLight,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -622,8 +634,11 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
-                primary: Theme.of(context).primaryColorDark,
-                onPrimary: GobbleColors.textLight,
+                primary: Theme.of(context).cardColor,
+                // RETURNS A LIGHT COLOR WHEN IT'S DARK AND VICE VERSA
+                onPrimary: Theme.of(context).brightness == Brightness.light
+                    ? Theme.of(context).primaryColorDark
+                    : Theme.of(context).primaryColorLight,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(50),
                 ),
@@ -632,7 +647,6 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                   ? const Text("Start")
                   : state is LoadingState
                       ? SpinKitThreeBounce(
-                          color: Theme.of(context).primaryColorLight,
                           size: 20,
                         )
                       : const Text("Start"),
@@ -656,7 +670,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
           },
           icon: Icon(
             CupertinoIcons.restart,
-            color: Theme.of(context).primaryColorDark,
+            color: Theme.of(context).primaryColorLight,
           ),
         ),
         IconButton(
@@ -665,7 +679,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
           },
           icon: Icon(
             CupertinoIcons.check_mark,
-            color: Theme.of(context).primaryColorDark,
+            color: Theme.of(context).primaryColorLight,
           ),
         ),
       ],
@@ -676,12 +690,12 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 12.0, bottom: 10),
+        Padding(
+          padding: const EdgeInsets.only(left: 12.0, bottom: 10),
           child: Text(
             "Do you have the game code?",
             style: TextStyle(
-              color: GobbleColors.textDark,
+              color: Theme.of(context).primaryColorLight,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -694,7 +708,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
               controller: _textController,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               keyboardType: TextInputType.number,
-              cursorColor: Theme.of(context).primaryColorDark,
+              cursorColor: Theme.of(context).primaryColorLight,
               validator: (_) {
                 if (state is InvalidCode) {
                   return 'This code is invalid';
@@ -710,26 +724,27 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                 isDense: true,
                 contentPadding: const EdgeInsets.all(10),
                 hintText: 'Enter the code',
-                fillColor: Colors.white,
-                filled: true,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(50),
-                  borderSide:
-                      BorderSide(color: Theme.of(context).primaryColorDark, width: 1.0),
+                  borderSide: BorderSide(
+                      color: Theme.of(context).primaryColorLight, width: 1.0),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(50),
-                  borderSide:
-                      BorderSide(color: Theme.of(context).primaryColorDark, width: 1.0),
+                  borderSide: BorderSide(
+                      color: Theme.of(context).primaryColorLight, width: 1.0),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(50),
-                  borderSide: const BorderSide(color: Colors.red, width: 1.0),
+                  borderSide: BorderSide(
+                      color: Theme.of(context).errorColor, width: 1.0),
                 ),
                 focusedErrorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(50),
-                  borderSide: const BorderSide(color: Colors.red, width: 1.0),
+                  borderSide: BorderSide(
+                      color: Theme.of(context).errorColor, width: 1.0),
                 ),
+                errorStyle: TextStyle(color: Theme.of(context).errorColor),
               ),
             );
           },

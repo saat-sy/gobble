@@ -21,14 +21,15 @@ class SettingsBottomModal extends StatelessWidget {
             const SizedBox(
               height: 10,
             ),
-            const Text(
+            Text(
               "Theme",
               style: TextStyle(
-                color: Colors.black,
+                color: Theme.of(context).primaryColorLight,
                 fontSize: 16,
               ),
             ),
             switcherContainer(
+              context: context,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -51,21 +52,22 @@ class SettingsBottomModal extends StatelessWidget {
             const SizedBox(
               height: 10,
             ),
-            const Text(
+            Text(
               "Accent Color",
               style: TextStyle(
-                color: Colors.black,
+                color: Theme.of(context).primaryColorLight,
                 fontSize: 16,
               ),
             ),
             switcherContainer(
+              context: context,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   switcherChildColor(
                     context: context,
-                    color: appThemeData[AppTheme.blackDark]?.primaryColorLight,
+                    color: appThemeData[AppTheme.blackDark]?.primaryColor,
                     text: 'Black',
                     active: state.theme.primaryColor ==
                         appThemeData[AppTheme.blackDark]?.primaryColor,
@@ -73,10 +75,12 @@ class SettingsBottomModal extends StatelessWidget {
                   ),
                   switcherChildColor(
                     context: context,
-                    color: appThemeData[AppTheme.blueDark]?.primaryColorLight,
+                    color: appThemeData[AppTheme.blueDark]?.primaryColor,
                     text: 'Blue',
                     active: state.theme.primaryColor ==
-                        appThemeData[AppTheme.blueDark]?.primaryColor,
+                            appThemeData[AppTheme.blueDark]?.primaryColor ||
+                        state.theme.primaryColor ==
+                            appThemeData[AppTheme.blueLight]?.primaryColor,
                     state: state,
                   ),
                 ],
@@ -96,7 +100,7 @@ class SettingsBottomModal extends StatelessWidget {
       padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.grey.shade300),
+          bottom: BorderSide(color: Colors.grey.shade500),
         ),
       ),
       child: Stack(
@@ -153,29 +157,34 @@ class SettingsBottomModal extends StatelessWidget {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: active ? Colors.white : Colors.transparent,
+            color: active
+                ? Theme.of(context).dialogBackgroundColor
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(50),
           ),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(50),
-                  ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11.5),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(50),
                 ),
-                const SizedBox(width: 7.5),
-                Text(
-                  text,
-                  style: const TextStyle(fontSize: 15),
+              ),
+              const SizedBox(width: 7.5),
+              Text(
+                text,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: active
+                      ? Theme.of(context).primaryColorLight
+                      : Colors.grey.shade500,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -206,14 +215,18 @@ class SettingsBottomModal extends StatelessWidget {
         borderRadius: BorderRadius.circular(50),
         child: Container(
           decoration: BoxDecoration(
-            color: active ? Colors.white : Colors.transparent,
+            color: active
+                ? Theme.of(context).dialogBackgroundColor
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(50),
           ),
           child: Container(
             padding: const EdgeInsets.all(8),
             child: Icon(
               icon,
-              color: active ? Colors.black : Colors.grey.shade500,
+              color: active
+                  ? Theme.of(context).primaryColorLight
+                  : Colors.grey.shade500,
             ),
           ),
         ),
@@ -221,7 +234,8 @@ class SettingsBottomModal extends StatelessWidget {
     );
   }
 
-  Container switcherContainer({required Widget child}) {
+  Container switcherContainer(
+      {required Widget child, required BuildContext context}) {
     return Container(
       margin: const EdgeInsets.symmetric(
         vertical: 12.5,
@@ -232,7 +246,9 @@ class SettingsBottomModal extends StatelessWidget {
         vertical: 2.5,
       ),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 241, 241, 241),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).cardColor
+            : const Color.fromARGB(255, 240, 240, 240),
         borderRadius: BorderRadius.circular(50),
       ),
       child: child,

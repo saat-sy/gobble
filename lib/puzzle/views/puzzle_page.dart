@@ -102,7 +102,7 @@ class _PuzzleViewState extends State<PuzzleView> {
             Icons.settings_outlined,
             color: Theme.of(context).primaryColorLight,
           ),
-        )
+        ),
       ],
     );
   }

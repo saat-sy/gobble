@@ -65,8 +65,6 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
       }
     }
 
-    print(themeString);
-
     final prefs = await SharedPreferences.getInstance();
     prefs.setString(GobbleStrings.theme, themeString);
   }
@@ -90,8 +88,6 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
         themeString = AppTheme.blueDark.toString();
       }
     }
-
-    print(themeString);
 
     final prefs = await SharedPreferences.getInstance();
     prefs.setString(GobbleStrings.theme, themeString);

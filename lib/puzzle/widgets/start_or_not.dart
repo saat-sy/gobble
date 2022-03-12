@@ -24,22 +24,22 @@ class StartOrNotDialog extends StatelessWidget {
         children: [
           Container(
             margin: const EdgeInsets.all(20),
-            child: const Text(
+            child: Text(
               'Start the game',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: GobbleColors.textDark,
+                  color: Theme.of(context).primaryColorLight,
                   fontWeight: FontWeight.w600,
                   fontSize: 19),
             ),
           ),
           Container(
             margin: const EdgeInsets.only(left: 15, right: 15, bottom: 20),
-            child: const Text(
+            child: Text(
               'Player 2 has joined the game. Do you want to start it?',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: GobbleColors.textDark,
+                color: Theme.of(context).primaryColorLight,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -51,16 +51,13 @@ class StartOrNotDialog extends StatelessWidget {
                   onPressed: noPressed,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(37.5),
-                    primary: Theme.of(context).primaryColorLight,
-                    onPrimary: GobbleColors.textDark,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(23),
-                        ),
-                        side: BorderSide(
-                          color: Colors.grey.shade300,
-                          width: 1,
-                        )),
+                    primary: Theme.of(context).primaryColorDark,
+                    onPrimary: Theme.of(context).primaryColorLight,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(23),
+                      ),
+                    ),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   child: const Center(
@@ -78,8 +75,11 @@ class StartOrNotDialog extends StatelessWidget {
                   onPressed: yesPressed,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(37.5),
-                    primary: Theme.of(context).primaryColorDark,
-                    onPrimary: GobbleColors.textLight,
+                    primary: Theme.of(context).cardColor,
+                    // RETURNS A LIGHT COLOR WHEN IT'S DARK AND VICE VERSA
+                    onPrimary: Theme.of(context).brightness == Brightness.light
+                        ? Theme.of(context).primaryColorDark
+                        : Theme.of(context).primaryColorLight,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                         bottomRight: Radius.circular(23),

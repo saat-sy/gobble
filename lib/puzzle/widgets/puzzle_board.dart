@@ -73,9 +73,9 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
   }
 
   MyDismissible getPiece(Piece piece) {
-    Color pieceColor = GobbleColors.pieceType1;
+    Color pieceColor = Theme.of(context).dialogBackgroundColor;
     String value = "";
-    Color valueColor = GobbleColors.valueType1;
+    Color valueColor = Theme.of(context).primaryColorDark;
 
     Tween<double> _tween = Tween<double>(begin: 0, end: 1);
 
@@ -83,15 +83,27 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
       // ASSIGN VAL TO THE ACTUAL VALUE
       value = piece.value.toString();
 
-      // ASSIGN THE ACTUAL PIECE COLOR
-      pieceColor = piece.pieceType == PieceType.type1
-          ? GobbleColors.pieceType1
-          : GobbleColors.pieceType2;
+      if (Theme.of(context).brightness == Brightness.light) {
+        // ASSIGN THE ACTUAL PIECE COLOR
+        pieceColor = piece.pieceType == PieceType.type1
+            ? Theme.of(context).primaryColorDark
+            : Theme.of(context).primaryColorLight;
 
-      // ASSIGN THE VALUE PIECE COLOR
-      valueColor = piece.pieceType == PieceType.type1
-          ? GobbleColors.valueType1
-          : GobbleColors.valueType2;
+        // ASSIGN THE VALUE PIECE COLOR
+        valueColor = piece.pieceType == PieceType.type1
+            ? Theme.of(context).primaryColorLight
+            : Theme.of(context).primaryColorDark;
+      } else {
+        // ASSIGN THE ACTUAL PIECE COLOR
+        pieceColor = piece.pieceType == PieceType.type1
+            ? Theme.of(context).dialogBackgroundColor
+            : Theme.of(context).primaryColorLight;
+
+        // ASSIGN THE VALUE PIECE COLOR
+        valueColor = piece.pieceType == PieceType.type1
+            ? Theme.of(context).primaryColorLight
+            : Theme.of(context).primaryColorDark;
+      }
     }
 
     Color shadowColor = Colors.black.withOpacity(0.2);
@@ -110,7 +122,7 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
         height: sideOfPiece,
         width: sideOfPiece,
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColorLight,
+          color: Theme.of(context).dialogBackgroundColor,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -128,7 +140,7 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
         height: sideOfPiece,
         width: sideOfPiece,
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColorLight,
+          color: Theme.of(context).dialogBackgroundColor,
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -173,7 +185,10 @@ class _PuzzleBoardState extends State<PuzzleBoard> {
             child: Text(
               value,
               style: TextStyle(
-                  color: valueColor, fontSize: 30, fontWeight: FontWeight.w500),
+                color: valueColor,
+                fontSize: 30,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ),

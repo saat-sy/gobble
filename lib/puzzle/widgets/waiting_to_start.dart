@@ -15,26 +15,26 @@ class WaitingToStartDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           SpinKitThreeBounce(
-            color: Theme.of(context).primaryColorDark,
+            color: Theme.of(context).primaryColorLight,
             size: 35,
           ),
           Container(
             margin: const EdgeInsets.only(top: 20),
-            child: const Text(
+            child: Text(
               'Waiting for Player 1 to start',
               style: TextStyle(
-                color: GobbleColors.textDark,
+                color: Theme.of(context).primaryColorLight,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
           Container(
             margin: const EdgeInsets.only(top: 10),
-            child: const Text(
+            child: Text(
               'The game will begin automatically when Player 1 starts it',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: GobbleColors.textDark,
+                color: Theme.of(context).primaryColorLight,
                 fontSize: 14,
               ),
             ),

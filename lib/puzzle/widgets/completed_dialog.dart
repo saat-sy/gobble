@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gobble/colors/colors.dart';
 
 class OfflineWinnerDialog extends StatelessWidget {
   final VoidCallback onBackPress;
@@ -34,7 +33,9 @@ class OfflineWinnerDialog extends StatelessWidget {
           const SizedBox(height: 12.5),
           _SubHeading(text: '$playerWon won the game'),
           const SizedBox(height: 12.5),
-          _BackButton(onBackPress: onBackPress,),
+          _BackButton(
+            onBackPress: onBackPress,
+          ),
           const SizedBox(height: 10),
         ],
       ),
@@ -73,7 +74,9 @@ class OnlineWinnerDialog extends StatelessWidget {
           const SizedBox(height: 12.5),
           const _SubHeading(text: 'You won!'),
           const SizedBox(height: 12.5),
-          _BackButton(onBackPress: onBackPress,),
+          _BackButton(
+            onBackPress: onBackPress,
+          ),
           const SizedBox(height: 10),
         ],
       ),
@@ -112,7 +115,9 @@ class OnlineLoserDialog extends StatelessWidget {
           const SizedBox(height: 12.5),
           const _SubHeading(text: 'Better luck next time'),
           const SizedBox(height: 12.5),
-          _BackButton(onBackPress: onBackPress,),
+          _BackButton(
+            onBackPress: onBackPress,
+          ),
           const SizedBox(height: 10),
         ],
       ),
@@ -133,8 +138,11 @@ class _BackButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onBackPress,
       style: ElevatedButton.styleFrom(
-        primary: Theme.of(context).primaryColorDark,
-        onPrimary: GobbleColors.textLight,
+        // RETURNS A LIGHT COLOR WHEN IT'S DARK AND VICE VERSA
+        primary: Theme.of(context).cardColor,
+        onPrimary: Theme.of(context).brightness == Brightness.light
+            ? Theme.of(context).primaryColorDark
+            : Theme.of(context).primaryColorLight,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(50),
         ),
