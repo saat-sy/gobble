@@ -593,7 +593,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                   37.5),
           textStyle: GoogleFonts.rubik(
             fontSize: 16,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
           primary: Theme.of(context).cardColor,
           onPrimary: Theme.of(context).brightness == Brightness.light

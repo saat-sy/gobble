@@ -48,6 +48,7 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
           return MaterialApp(
+            title: "Gobble",
             builder: (context, child) => ResponsiveWrapper.builder(
               ClampingScrollWrapper(child: child!),
               breakpoints: const [
