@@ -5,15 +5,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:gobble/models/puzzle.dart';
 import 'package:gobble/multiplayer/multiplayer_bloc.dart';
 import 'package:gobble/puzzle/puzzle.dart';
+import 'package:gobble/puzzle/puzzle_functions.dart';
 import 'package:gobble/puzzle/widgets/completed_dialog.dart';
 import 'package:gobble/puzzle/widgets/puzzle_board.dart';
 import 'package:gobble/puzzle/widgets/restart_or_start.dart';
+import 'package:gobble/puzzle/widgets/settings_bottom_modal.dart';
 import 'package:gobble/puzzle/widgets/start_or_not.dart';
 import 'package:gobble/puzzle/widgets/waiting_to_start.dart';
+import 'package:gobble/themes/app_themes.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PuzzleBuilder extends StatefulWidget {
@@ -60,8 +65,37 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
     super.dispose();
   }
 
+  late double sideOfBoard;
+
   @override
   Widget build(BuildContext context) {
+    sideOfBoard = MediaQuery.of(context).size.width;
+
+    sideOfBoard =
+        ResponsiveValue(context, defaultValue: sideOfBoard, valueWhen: [
+              Condition.equals(
+                name: MOBILE,
+                value: sideOfBoard *
+                    (puzzleConstants['mobile-board-width-perc'] ?? 1.0),
+              ),
+              Condition.equals(
+                name: TABLET,
+                value: sideOfBoard *
+                    (puzzleConstants['tablet-board-width-perc'] ?? 0.7),
+              ),
+              Condition.equals(
+                name: DESKTOP,
+                value: sideOfBoard *
+                    (puzzleConstants['desktop-board-width-perc'] ?? 0.5),
+              ),
+              Condition.equals(
+                name: 'XL',
+                value: sideOfBoard *
+                    (puzzleConstants['xl-board-width-perc'] ?? 0.4),
+              ),
+            ]).value ??
+            sideOfBoard;
+
     return BlocListener<PuzzleBloc, PuzzleState>(
       listenWhen: (previous, current) => current.completed || current.draw,
       listener: (context, state) {
@@ -124,6 +158,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
         children: [
           // GAME MODE SWITCHER
           BlocBuilder<PuzzleBloc, PuzzleState>(
@@ -132,40 +167,11 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                 (previous.started != current.started) ||
                 (previous.currentPlayer != current.currentPlayer),
             builder: (context, state) {
-              return AnimatedCrossFade(
-                crossFadeState: state.started
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                duration: const Duration(milliseconds: 200),
-                firstChild: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _switchButton(
-                      title: '1v1 Offline',
-                      context: context,
-                      puzzleType: PuzzleType.offline,
-                    ),
-                    _switchButton(
-                      title: 'Multiplayer',
-                      context: context,
-                      puzzleType: PuzzleType.online,
-                    ),
-                  ],
-                ),
-                secondChild: Row(
-                  mainAxisAlignment: state.puzzleType == PuzzleType.online
-                      ? MainAxisAlignment.spaceEvenly
-                      : MainAxisAlignment.center,
-                  children: [
-                    // CURRENT PLAYER
-                    getCurrentPlayerWidget(state),
-                    // PLAYER
-                    state.puzzleType == PuzzleType.online
-                        ? getPlayerWidget(state)
-                        : Container()
-                  ],
-                ),
-              );
+              if (MediaQuery.of(context).size.width < 600) {
+                return getSwitcherForMobile(state, context);
+              } else {
+                return getSwitcherForDesktop(state);
+              }
             },
           ),
 
@@ -181,12 +187,14 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                   PuzzleBoard(
                     puzzle: state.puzzle,
                   ),
-                  state.started ? Container() : _blurBuilder(),
+                  state.started ? Container() : Center(child: _blurBuilder()),
                   state.started
                       ? Container()
-                      : FadeTransition(
-                          opacity: _codeAnimation,
-                          child: _onlineButtonsBuilder(),
+                      : Center(
+                          child: FadeTransition(
+                            opacity: _codeAnimation,
+                            child: _onlineButtonsBuilder(),
+                          ),
                         ),
                 ],
               );
@@ -212,6 +220,178 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
               );
             },
           )
+        ],
+      ),
+    );
+  }
+
+  Container getSwitcherForDesktop(PuzzleState state) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveValue(
+              context,
+              defaultValue: 50.0,
+              valueWhen: const [
+                Condition.equals(name: TABLET, value: 50.0),
+                Condition.equals(name: DESKTOP, value: 75.0)
+              ],
+            ).value ??
+            50.0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // LOGO
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                Theme.of(context).brightness == Brightness.light
+                    ? Theme.of(context).primaryColor ==
+                            appThemeData[AppTheme.blackLight]?.primaryColor
+                        ? "assets/icon/icon-light-black.svg"
+                        : "assets/icon/icon-light-blue.svg"
+                    : Theme.of(context).primaryColor ==
+                            appThemeData[AppTheme.blackDark]?.primaryColor
+                        ? "assets/icon/icon-dark-black.svg"
+                        : "assets/icon/icon-dark-blue.svg",
+                height: 45,
+              ),
+              Text(
+                "obble",
+                style: GoogleFonts.rubik(
+                  color: Theme.of(context).primaryColorLight,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 20,
+                ),
+              )
+            ],
+          ),
+
+          // SWITCHER
+          Row(
+            children: [
+              _switcherButtonForDesktop(
+                puzzleType: PuzzleType.offline,
+                text: "1v1 Offline",
+              ),
+              SizedBox(
+                width: ResponsiveValue(
+                  context,
+                  defaultValue: 5.0,
+                  valueWhen: const [
+                    Condition.equals(name: TABLET, value: 5.0),
+                    Condition.largerThan(name: TABLET, value: 20.0)
+                  ],
+                ).value,
+              ),
+              _switcherButtonForDesktop(
+                puzzleType: PuzzleType.online,
+                text: "Multiplayer",
+              ),
+              SizedBox(
+                width: ResponsiveValue(
+                  context,
+                  defaultValue: 5.0,
+                  valueWhen: const [
+                    Condition.equals(name: TABLET, value: 5.0),
+                    Condition.largerThan(name: TABLET, value: 20.0)
+                  ],
+                ).value,
+              ),
+              // SETTINGS
+              IconButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) {
+                      return const SettingsBottomModal();
+                    },
+                  );
+                },
+                icon: Icon(
+                  Icons.settings_outlined,
+                  color: Theme.of(context).primaryColorLight,
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  TextButton _switcherButtonForDesktop({
+    required PuzzleType puzzleType,
+    required String text,
+  }) {
+    bool active = context.read<PuzzleBloc>().state.puzzleType == puzzleType;
+    return TextButton(
+      onPressed: () {
+        if (!context.read<PuzzleBloc>().state.started) {
+          if (puzzleType == PuzzleType.online) {
+            _blurController.forward();
+            _codeController.forward();
+          } else {
+            _blurController.reverse();
+            _codeController.reverse();
+          }
+          context.read<PuzzleBloc>().add(
+                ChangePuzzleType(
+                  puzzleType: puzzleType,
+                ),
+              );
+        }
+      },
+      child: Text(text),
+      style: TextButton.styleFrom(
+          primary: active
+              ? Theme.of(context).primaryColorLight
+              : Theme.of(context).primaryColorLight.withOpacity(0.7),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          textStyle: GoogleFonts.rubik(
+            fontSize: 17,
+            fontWeight: FontWeight.w500,
+          )),
+    );
+  }
+
+  AnimatedCrossFade getSwitcherForMobile(
+      PuzzleState state, BuildContext context) {
+    return AnimatedCrossFade(
+      crossFadeState:
+          state.started ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+      duration: const Duration(milliseconds: 200),
+      firstChild: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _switchButton(
+            title: '1v1 Offline',
+            context: context,
+            puzzleType: PuzzleType.offline,
+          ),
+          _switchButton(
+            title: 'Multiplayer',
+            context: context,
+            puzzleType: PuzzleType.online,
+          ),
+        ],
+      ),
+      secondChild: Row(
+        mainAxisAlignment: state.puzzleType == PuzzleType.online
+            ? MainAxisAlignment.spaceEvenly
+            : MainAxisAlignment.center,
+        children: [
+          // CURRENT PLAYER
+          getCurrentPlayerWidget(state),
+          // PLAYER
+          state.puzzleType == PuzzleType.online
+              ? getPlayerWidget(state)
+              : Container()
         ],
       ),
     );
@@ -366,10 +546,17 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         }
 
         return Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.width,
+          constraints: BoxConstraints(
+            maxHeight: sideOfBoard,
+            maxWidth: sideOfBoard,
+          ),
           padding: EdgeInsets.symmetric(
-              horizontal: MediaQuery.of(context).size.width * 0.15),
+            horizontal: sideOfBoard *
+                (ResponsiveValue(context, defaultValue: 0.15, valueWhen: [
+                      const Condition.largerThan(name: MOBILE, value: 0.25)
+                    ]).value ??
+                    0.15),
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -397,7 +584,13 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
           context.read<MultiplayerBloc>().add(GenerateCode());
         },
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size.fromHeight(32.5),
+          minimumSize: Size.fromHeight(
+              ResponsiveValue(context, defaultValue: 37.5, valueWhen: const [
+                    Condition.largerThan(name: MOBILE, value: 42.5),
+                    Condition.largerThan(name: TABLET, value: 47.5),
+                    Condition.largerThan(name: DESKTOP, value: 47.5)
+                  ]).value ??
+                  37.5),
           textStyle: GoogleFonts.rubik(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -481,8 +674,7 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
         Row(
           mainAxisSize: MainAxisSize.max,
           children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.35,
+            Expanded(
               child: ElevatedButton(
                 onPressed: () async {
                   await Share.share(code);
@@ -515,8 +707,8 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                 ),
               ),
             ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.35,
+            Expanded(
+              // width: MediaQuery.of(context).size.width * 0.35,
               child: ElevatedButton(
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: code));
@@ -581,8 +773,10 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
               sigmaY: max(0.001, _blurAnimation.value),
             ),
             child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.width,
+              constraints: BoxConstraints(
+                maxHeight: sideOfBoard,
+                maxWidth: sideOfBoard,
+              ),
               color: Colors.transparent,
             ),
           ),
@@ -662,6 +856,10 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
             horizontal: MediaQuery.of(context).size.width * 0.1,
             // vertical: MediaQuery.of(context).size.width * 0.1,
           ),
+          constraints: BoxConstraints(
+            maxWidth:
+                sideOfBoard - MediaQuery.of(context).size.width * 0.1, // MARGIN
+          ),
           child: Align(
             alignment: Alignment.center,
             child: ElevatedButton(
@@ -678,7 +876,14 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                 }
               },
               style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(37.5),
+                minimumSize: Size.fromHeight(ResponsiveValue(context,
+                        defaultValue: 37.5,
+                        valueWhen: const [
+                          Condition.largerThan(name: MOBILE, value: 42.5),
+                          Condition.largerThan(name: TABLET, value: 47.5),
+                          Condition.largerThan(name: DESKTOP, value: 47.5)
+                        ]).value ??
+                    37.5),
                 textStyle: GoogleFonts.rubik(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -798,7 +1003,8 @@ class _PuzzleBuilderState extends State<PuzzleBuilder>
                   color: Color(0xFFb1b1b1),
                 ),
                 isDense: true,
-                contentPadding: const EdgeInsets.all(10),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
                 hintText: 'Enter the code',
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(50),

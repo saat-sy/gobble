@@ -4,6 +4,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gobble/strings/strings.dart';
 import 'package:gobble/themes/bloc/theme_bloc.dart';
+import 'package:responsive_framework/responsive_wrapper.dart';
+import 'package:responsive_framework/utils/scroll_behavior.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'puzzle/puzzle.dart';
 import 'firebase_options.dart';
@@ -46,6 +48,15 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
           return MaterialApp(
+            builder: (context, child) => ResponsiveWrapper.builder(
+              ClampingScrollWrapper(child: child!),
+              breakpoints: const [
+                ResponsiveBreakpoint.resize(350, name: MOBILE),
+                ResponsiveBreakpoint.resize(600, name: TABLET),
+                ResponsiveBreakpoint.resize(1100, name: DESKTOP),
+                ResponsiveBreakpoint.autoScale(1700, name: 'XL'),
+              ],
+            ),
             theme: state.theme,
             home: const PuzzlePage(),
           );

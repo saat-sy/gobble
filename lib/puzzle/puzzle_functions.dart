@@ -5,6 +5,13 @@ import 'package:gobble/models/piece.dart';
 import 'package:gobble/models/position.dart';
 import 'package:gobble/models/puzzle.dart';
 
+Map<String, double> puzzleConstants = {
+  'mobile-board-width-perc': 1.0,
+  'tablet-board-width-perc': 0.7,
+  'desktop-board-width-perc': 0.50,
+  'xl-board-width-perc': 0.35,
+};
+
 abstract class PuzzleFunctions {
 
   static Puzzle generatePuzzle() {

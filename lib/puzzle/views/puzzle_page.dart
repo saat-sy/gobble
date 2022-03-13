@@ -49,7 +49,7 @@ class _PuzzleViewState extends State<PuzzleView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).backgroundColor,
-      appBar: getAppBar(),
+      appBar: MediaQuery.of(context).size.width < 600 ? getAppBar() : null,
       body: const PuzzleBuilder(),
     );
   }
@@ -72,11 +72,8 @@ class _PuzzleViewState extends State<PuzzleView> {
                     : "assets/icon/icon-dark-blue.svg",
             height: 30,
           ),
-          const SizedBox(
-            width: 10,
-          ),
           Text(
-            "Gobble",
+            "obble",
             style: TextStyle(
               color: Theme.of(context).primaryColorLight,
             ),
