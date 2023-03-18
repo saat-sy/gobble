@@ -17,6 +17,7 @@ Future<void> main() async {
   );
   SharedPreferences prefs = await SharedPreferences.getInstance();
   runApp(MyApp(prefs: prefs));
+  print("hello");
 }
 
 class MyApp extends StatelessWidget {
