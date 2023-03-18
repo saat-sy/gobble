@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
     if (value != null) {
       return value;
     } else {
-      var brightness = SchedulerBinding.instance!.window.platformBrightness;
+      var brightness = SchedulerBinding.instance.window.platformBrightness;
       if (brightness == Brightness.dark) {
         return 1;
       } else {
